@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <vector>
 #include <iostream>
+#include <ctime>
 
 
 using namespace std;
@@ -13,9 +14,9 @@ class particles
 public:
   void set_values (vector<double>,vector<double>,vector<double>);
   vector<double> dir_product (vector<double>,vector<double>);
-  vector<double> position;
-  vector<double> velocity;
-  vector<double> momentum;
+  vector<double> x;
+  vector<double> vx;
+  vector<double> mx;
 };
    
    int NPart;                       // No of particles
@@ -24,7 +25,8 @@ public:
    vector<double> mass(NPart);      // Vector for storing particle masses
    vector<double> pos(NPart);       // Positions
    vector<double> vel(NPart);       // Velocities
-   FILE *fp_traj;                   // Create a file to store the trajectories
+   FILE *data;                      // Create a file to store the trajectories
+   double Vt;                       // Max velocity for uniform distribution   
 
 vector<double> particles::dir_product (vector<double> a, vector<double> b) // Defining direct product
 {
@@ -37,50 +39,121 @@ vector<double> particles::dir_product (vector<double> a, vector<double> b) // De
   return product;
 } 
 
+// Write the positions of the particles in the file " data ".
+void record_trajectories( )
+{
+  int i;
 
-void particles::set_values (vector<double> x, vector<double> vx, vector<double> m) {  // Setting positions, velocities and momenta
-  position = x;
-  velocity = vx;
-  momentum = part.dir_product(m,velocity);
+  for ( i=0 ; i<part.x.size() ; i++ )
+    {
+      fprintf( data, "%f %f %f %f\n", tmin, part.x[i], part.vx[i], part.mx[i] ); // Escrever os valores para o ficheiro "DATA"
+    }
 }
 
+void particles::set_values (vector<double> position, vector<double> velocity, vector<double> momentum) {  // Setting positions, velocities and momenta
+   x = position;
+  vx = velocity;
+  mx = part.dir_product(momentum,velocity);
+}
 
+void initial_conditions() // GOnna Define the initial COnditions
+{
+  vector<double> Px;
+  vector<double> old_x;
+  vector<double> old_vx;
+  double r1;     // auxiliary variable to generate a random
+  int i;
+  double axis=0; // Start of x axis
+  double spc=1; //defining intersheet spacing
+  
+  for ( i=0 ; i<NPart ; i++ ) 
+    {
+
+   //Defining the x positions 	
+      //part.x[i]+=spc;
+      pos.push_back(axis);
+      axis+=spc;
+
+   // random velocities according to uniform distribution
+      r1 = (double)rand()/(double)RAND_MAX;  // generating rando between 0 and 1
+      vel.push_back(Vt*r1);
+
+    // Defining the masses
+    	mass.push_back(1);
+    }
+                        
+  for ( i=0 ; i<part.x.size(); i++ )
+    {
+      old_x.push_back(pos[i]) ;  // Guardar valores da posiçao e velocidade no tempo t para quando recalcularmos
+      old_vx.push_back(vel[i]);  // tudo com o novo timestep (usando o tc1 e mais tarde o tc2 em vez do delta t inicial)
+    }
+
+    part.set_values(pos,vel,mass);
+}
+
+void func( )
+{
+  int i, j;
+  
+  /*
+
+*/}
 
 int main()
 {
-	cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
+	srand((int) time(0));  // Seeding the random distribution 
+
+   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
     	
    // Number of particles
    NPart = 5;
+   // Max velocity
+   Vt=4;
 
    // Time parameters
    tmin = 0.0;
    tmax = 10.0;
-   dt = 0.001;
+   dt = 0.01;
+   double t = tmin; // Initial time
+
+   int print_trajectory=1;
+
+   // Create the file to store the trajectories
+   data = fopen( "DATA", "w" );
 
    //mass.reserve(NPart);
 
-   
-   for (int i = 0; i < NPart; ++i)
-   {
-     mass.assign(NPart,4);
-     pos.push_back(3);
-     vel.push_back(2);
-   }
+    initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
-    //cout << "SIZE: " << mass.size() << endl;
-   //part.set_values()
-	part.set_values(pos,vel,mass);
-
+     // Print, to the terminal, positions, velocities & momenta.
     cout << " Nº Partículas:  " << NPart << " \n " << endl;
 
-    for (int i = 0; i < part.position.size(); ++i)
+    for (int i = 0; i < part.x.size(); ++i)
     {
-    	cout << " Partícula " << i << " \t Position : " << part.position[i] << " |  Velocity :  " ;
-    	cout << part.velocity[i] << " |  Momentum : " << part.momentum[i] << " |" << endl;
+    	cout << " Partícula " << i << " \t Position : " << part.x[i] << " |  Velocity :  " ;
+    	cout << part.vx[i] << "   |  Momentum : " << part.mx[i] << " |" << endl;
     }
 
     cout << "\n COrreu tudo bem \n" << endl;
+
+    // Dynamics Iteration
+  while ( t < tmax )
+    {
+      // Compute positions and velocities at current timestep
+      //func();
+      // Go to the next timestep
+      t = t + dt;
+      tmin += dt;
+      // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
+      if (print_trajectory == 1)
+         record_trajectories( );
+
+    }
+
+
+  // Close trajectories file
+  fclose( data );
 	
+
 	return 0;
 }
