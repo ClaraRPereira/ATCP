@@ -1,3 +1,5 @@
+
+
 #include <cstdio>
 #include <cmath>
 #include <cstdlib>
@@ -5,6 +7,9 @@
 #include <iostream>
 #include <ctime>
 
+#ifndef M_PI
+#    define M_PI 3.14159265358979323846
+#endif
 
 using namespace std;
 
@@ -21,7 +26,7 @@ public:
    
    int NPart;                       // No of particles
    particles part;                  // Initializing one set of particles
-   double dt, tmin, tmax;           // Time grid
+   double dt, tmin, t, tmax;           // Time grid
    vector<double> mass(NPart);      // Vector for storing particle masses
    vector<double> pos(NPart);       // Positions
    vector<double> vel(NPart);       // Velocities
@@ -61,6 +66,9 @@ void initial_conditions() // GOnna Define the initial COnditions
   vector<double> Px;
   vector<double> old_x;
   vector<double> old_vx;
+  double m=1; //Let's start by defining all masses as 1
+  double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
+  double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
   double r1;     // auxiliary variable to generate a random
   int i;
   double axis=0; // Start of x axis
@@ -72,16 +80,28 @@ void initial_conditions() // GOnna Define the initial COnditions
    //Defining the x positions 	
       //part.x[i]+=spc;
       pos.push_back(axis);
+      //cout << " pos: " << pos[i] << endl;
       axis+=spc;
 
    // random velocities according to uniform distribution
       r1 = (double)rand()/(double)RAND_MAX;  // generating rando between 0 and 1
       vel.push_back(Vt*r1);
+     // cout << " vel: " << vel[i] << endl;
 
     // Defining the masses
-    	mass.push_back(1);
+    	mass.push_back(m);
     }
-                        
+    
+/*
+  for ( i = 0; i < NPart; ++i) // Applying equations (2) and (3) from Reference [2] 
+    {
+    	pos[i]=pos[i]*cos(Wp*t)+ vel[i]*sin(Wp*t)/Wp;
+    	cout << " POS: " << pos[i] << endl;
+    	vel[i]=vel[i]*cos(Wp*t)- pos[i]*sin(Wp*t)*Wp;
+    	cout << " VEL: " << vel[i] << endl;
+    }  
+ */
+
   for ( i=0 ; i<part.x.size(); i++ )
     {
       old_x.push_back(pos[i]) ;  // Guardar valores da posiçao e velocidade no tempo t para quando recalcularmos
@@ -93,11 +113,14 @@ void initial_conditions() // GOnna Define the initial COnditions
 
 void func( )
 {
-  int i, j;
   
-  /*
+  
+ for (int i = 0; i < NPart; ++i)
+   {
+   	/* code */
+   }  
 
-*/}
+}
 
 int main()
 {
@@ -114,7 +137,7 @@ int main()
    tmin = 0.0;
    tmax = 10.0;
    dt = 0.01;
-   double t = tmin; // Initial time
+   t = tmin; // Initial time
 
    int print_trajectory=1;
 
