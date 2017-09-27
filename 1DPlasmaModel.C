@@ -7,7 +7,6 @@
 
 using namespace std;
 
-int NPart;                       // No of particles
 
 class particles
 {
@@ -18,13 +17,14 @@ public:
   vector<double> velocity;
   vector<double> momentum;
 };
-
-   particles part;           // Initializing one set of particles
-   double dt, tmin, tmax;    // Time grid
+   
+   int NPart;                       // No of particles
+   particles part;                  // Initializing one set of particles
+   double dt, tmin, tmax;           // Time grid
    vector<double> mass(NPart);      // Vector for storing particle masses
-   vector<double> pos(NPart);       // Positions, Velocities
-   vector<double> vel(NPart);  
-
+   vector<double> pos(NPart);       // Positions
+   vector<double> vel(NPart);       // Velocities
+   FILE *fp_traj;                   // Create a file to store the trajectories
 
 vector<double> particles::dir_product (vector<double> a, vector<double> b) // Defining direct product
 {
@@ -32,13 +32,13 @@ vector<double> particles::dir_product (vector<double> a, vector<double> b) // De
 
   for(int i=0; i<NPart; i++)
   {
-    product[i]=a[i]*b[i];
+    product[i]=a[i]*b[i]; // Multiplying component by component
   }
   return product;
 } 
 
 
-void particles::set_values (vector<double> x, vector<double> vx, vector<double> m) {  // Setting positions, velocities and masses
+void particles::set_values (vector<double> x, vector<double> vx, vector<double> m) {  // Setting positions, velocities and momenta
   position = x;
   velocity = vx;
   momentum = part.dir_product(m,velocity);
@@ -63,9 +63,9 @@ int main()
    
    for (int i = 0; i < NPart; ++i)
    {
-     mass.assign(NPart,1);
-     pos.push_back(1);
-     vel.push_back(1);
+     mass.assign(NPart,4);
+     pos.push_back(3);
+     vel.push_back(2);
    }
 
     //cout << "SIZE: " << mass.size() << endl;
@@ -78,7 +78,6 @@ int main()
     {
     	cout << " Partícula " << i << " \t Position : " << part.position[i] << " |  Velocity :  " ;
     	cout << part.velocity[i] << " |  Momentum : " << part.momentum[i] << " |" << endl;
-
     }
 
     cout << "\n COrreu tudo bem \n" << endl;
