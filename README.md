@@ -6,12 +6,12 @@ Major GIT commands:
 
 git config
     Sets configuration values for your user name, email, gpg key, preferred diff algorithm, file formats and more. Example: git config --global user.name "My Name" git config --global user.email "user@domain.com" cat ~/.gitconfig [user] name = My Name email = user@domain.com
-   
-git init
-    Initializes a git repository – creates the initial ‘.git’ directory in a new or in an existing project. Example: cd /home/user/my_new_git_folder/ git init
+  
+git pull
+    Fetches the files from the remote repository and merges it with your local one. This command is equal to the git fetch and the git merge sequence. Example: git pull origin
 
-git clone
-    Makes a Git repository copy from a remote source. Also adds the original location as a remote so you can fetch from it again and push to it if you have permissions. Example: git clone git@github.com:user/test.git
+git push
+    Pushes all the modified local objects to the remote repository and advances its branches. Example: git push origin master
   
 git add
   Adds files changes in your working directory to your index. Example: git add .
@@ -28,6 +28,11 @@ git status
 
 LESS IMPORTANT GIT COMMANDS:
 
+git clone
+    Makes a Git repository copy from a remote source. Also adds the original location as a remote so you can fetch from it again and push to it if you have permissions. Example: git clone git@github.com:user/test.git
+
+git init
+    Initializes a git repository – creates the initial ‘.git’ directory in a new or in an existing project. Example: cd /home/user/my_new_git_folder/ git init
 
 git branch
     Lists existing branches, including remote branches if ‘-a’ is provided. Creates a new branch if a branch name is provided. Example: git branch -a * master remotes/origin/master
@@ -49,12 +54,6 @@ git tag
 
 git fetch
     Fetches all the objects from the remote repository that are not present in the local one. Example: git fetch origin
-  
-git pull
-    Fetches the files from the remote repository and merges it with your local one. This command is equal to the git fetch and the git merge sequence. Example: git pull origin
-
-git push
-    Pushes all the modified local objects to the remote repository and advances its branches. Example: git push origin master
 
 git remote
     Shows all the remote versions of your repository. Example: git remote origin
