@@ -55,10 +55,10 @@ void record_trajectories( )
     }
 }
 
-void particles::set_values (vector<double> position, vector<double> velocity, vector<double> momentum) {  // Setting positions, velocities and momenta
+void particles::set_values (vector<double> position, vector<double> velocity, vector<double> mass) {  // Setting positions, velocities and momenta
    x = position;
   vx = velocity;
-  mx = part.dir_product(momentum,velocity);
+  mx = part.dir_product(mass,velocity);
 }
 
 void initial_conditions() // GOnna Define the initial COnditions
@@ -122,6 +122,50 @@ void func( )
 
 }
 
+void energy( double time )
+{
+  double kinetic, potential, pot, etotal;
+ 
+  double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
+  double E0= 4*M_PI*sigma*n0; // Amplitude campo Eléctrico
+  double xij, xij2;
+  int i, j;
+
+  // Kinetic energy of the system
+  /*kinetic = 0.0;
+  for ( i=0 ; i<NPart ; i++ )
+    {
+      kinetic = kinetic + 0.5 * part.mx[i]*part.vx[i];
+    }*/
+  for (i = 0; i < NPart; ++i)
+  {
+  	 kinetic = 0.5*part.dir_product(part.mx,part.vx)[i];
+  }
+ 
+  // Potential Energy of the system
+  potential = 0.0;
+  for ( i=0 ; i<NPart ; i++ )
+    {
+      for ( j=i+1 ; j<NPart ; j++  )       {
+            xij = part.x[i] - part.x[j];
+            
+            xij2 = xij*xij;
+            
+            pot = - E0 * ( xij2/2 );
+            potential = potential + pot;
+	}
+    }
+
+  // Total energy of the system
+  etotal = kinetic + potential;
+
+  // Print the energies and current timestep
+    cout << " " << time << "    "  << kinetic << "    "  << potential << "    "  << etotal  << endl;
+ 
+
+
+}
+
 int main()
 {
 	srand((int) time(0));  // Seeding the random distribution 
@@ -136,7 +180,7 @@ int main()
    // Time parameters
    tmin = 0.0;
    tmax = 10.0;
-   dt = 0.01;
+   dt = 0.5;
    t = tmin; // Initial time
 
    int print_trajectory=1;
@@ -157,7 +201,8 @@ int main()
     	cout << part.vx[i] << "   |  Momentum : " << part.mx[i] << " |" << endl;
     }
 
-    cout << "\n COrreu tudo bem \n" << endl;
+    cout << " \n ENERGIAS" << endl;
+    cout << " time   kinetic   potential   total " << endl;
 
     // Dynamics Iteration
   while ( t < tmax )
@@ -170,6 +215,9 @@ int main()
       // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
       if (print_trajectory == 1)
          record_trajectories( );
+
+      // Compute energies at current timestep
+      energy(t);
 
     }
 
