@@ -141,7 +141,8 @@ for ( int i=0 ; i<n ; i++ )
     {
       for ( int  j=i+1 ; j<n ; j++  )      
        {
-           if(npart.x[i]>npart.x[j])      { a=i; goto OUT;} // Particle i collides with particle j
+           if(npart.x[i]>npart.x[j])      { a=i; goto OUT;}  // Particle i collides with particle j . Tou a usar o goto só para
+                                                              // conseguir sair simultaneamente dos dois loops.
            else a=-1;                      // There are no collisions
 	   }
     }
