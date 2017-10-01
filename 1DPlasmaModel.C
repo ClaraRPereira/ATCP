@@ -23,7 +23,9 @@ public:
 };
    
    int NPart;                       // No of particles
-   particles part;                  // Initializing one set of particles
+   particles part;                  // Initializing one set of particles at time t
+   particles npart;                 // Set new set of particles at time t+dt 
+   vector<double> grid;             // vector for storing equilibrium positions on the x axis
    double dt, tmin, tmax;           // Time grid
    double t;                        // Time variable (evolving time)  
    vector<double> mass(NPart);      // Vector for storing particle masses
@@ -75,8 +77,8 @@ void particles::set_values (vector<double> position, vector<double> velocity, ve
 void initial_conditions() // GOnna Define the initial COnditions
 {
   vector<double> Px;
-  vector<double> old_x;
-  vector<double> old_vx;
+  
+
   double m=1; //Let's start by defining all masses as 1
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
@@ -91,6 +93,7 @@ void initial_conditions() // GOnna Define the initial COnditions
 
    //Defining the x positions 	
       //part.x[i]+=spc;
+      grid.push_back(axis);	
       pos.push_back(axis);
       //cout << " pos: " << pos[i] << endl;
       axis+=spc;
@@ -103,35 +106,61 @@ void initial_conditions() // GOnna Define the initial COnditions
     // Defining the masses
     	mass.push_back(m);
     }
-    
-/*
-  for ( i = 0; i < NPart; ++i) // Applying equations (2) and (3) from Reference [2] 
-    {
-    	pos[i]=pos[i]*cos(Wp*t)+ vel[i]*sin(Wp*t)/Wp;
-    	cout << " POS: " << pos[i] << endl;
-    	vel[i]=vel[i]*cos(Wp*t)- pos[i]*sin(Wp*t)*Wp;
-    	cout << " VEL: " << vel[i] << endl;
-    }  
- */
-
-  for ( i=0 ; i<n; i++ )
-    {
-      old_x.push_back(pos[i]) ;  // Guardar valores da posiçao e velocidade no tempo t para quando recalcularmos
-      old_vx.push_back(vel[i]);  // tudo com o novo timestep (usando o tc1 e mais tarde o tc2 em vez do delta t inicial)
-    }
 
     part.set_values(pos,vel,mass);
 }
 
-void func( )
+int func( )
 {
+  int a=0; // Store position of crossing particle
+  int n=NPart;
+  double m=1; //Let's start by defining all masses as 1
+  //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
+  //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
+  double Wp=1;
+  vector <double> X;
+  npart.x.reserve(n);
+  npart.vx.reserve(n);
+
+  for (int i = 0; i < n; ++i)
+  {
+  	X.push_back(part.x[i]-grid[i]);
+  }
+
+  // IF THERE AREN'T ANY CROSSINGS JUST NORMALLY CALCULATING TIME EVOLUTION OF "HARMONIC OSCILLATORS"
   
-  
- for (int i = 0; i < NPart; ++i)
+ for (int i = 0; i < n; ++i)
    {
-   	/* code */
+   npart.vx[i]=part.vx[i]*cos(Wp*dt)-Wp*X[i]*sin(Wp*dt);
+   npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dt)-X[i]*(1-cos(Wp*dt));
+    
    }  
 
+ // LOOPS TO LOOK FOR CROSSINGS
+for ( int i=0 ; i<n ; i++ )
+    {
+      for ( int  j=i+1 ; j<n ; j++  )      
+       {
+           if(npart.x[i]>npart.x[j])      { a=i; goto OUT;} // Particle i collides with particle j
+           else a=-1;                      // There are no collisions
+	   }
+    }
+  
+  if (a==-1) // if there are no crossings we just store old values and refresh the new ones
+   {
+   	for (int i = 0; i < n; ++i)
+   {
+   	 pos[i]=part.x[i];
+   	 vel[i]=part.vx[i];
+     part.x[i]=npart.x[i];
+     part.vx[i]=npart.vx[i];
+
+   } 
+   }  
+  OUT:
+  // else { //implementar a merda de encontrar os tempos de crossing}
+
+ return a;
 }
 
 void energy( double time )
@@ -159,7 +188,7 @@ void energy( double time )
   potential = 0.0;
   for ( i=0 ; i<n ; i++ )
     {
-      for ( j=i+1 ; j<NPart ; j++  )       {
+      for ( j=i+1 ; j<n ; j++  )       {
             xij = part.x[i] - part.x[j];
             
             xij2 = xij*xij;
@@ -188,11 +217,12 @@ int main()
 
    cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
     	
-   // Number of particles
-   NPart = 5;
+   
+   NPart = 7; // Number of particles
    int n=NPart;
-   // Max velocity
-   Vt=4;
+   int cross;   // position of crossing
+   Vt=3; // Max velocity
+   int k=0;
 
    // Time parameters
    tmin = 0.0;
@@ -200,7 +230,7 @@ int main()
    dt = 0.5;
    t = tmin; // Initial time
 
-   int print=0; // Variable to decide if i want to pront stuff
+   int print=1; // Variable to decide if i want to pront stuff
 
    // Create the files to store the data
    data = fopen( "DATA", "w" );
@@ -226,8 +256,13 @@ int main()
     // Dynamics Iteration
   while ( t < tmax )
     {
-      // Compute positions and velocities at current timestep
-      //func();
+         k=k+1;
+    	cout << " RUN " << k ;
+      // Compute positions and velocities at current timestep and determine crossing positions
+      cross=func();
+      if (cross!=-1) {cout << " \t \t \t \t Partícula " << cross << " choca com partícula " << cross+1 << endl; break;}
+      else cout << " \t \t \t \t Partículas não chocaram " << endl;
+       
       // Go to the next timestep
       t = t + dt;
       // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
