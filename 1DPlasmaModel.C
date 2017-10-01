@@ -110,9 +110,11 @@ void initial_conditions() // GOnna Define the initial COnditions
     part.set_values(pos,vel,mass);
 }
 
-int func( )
+int func( double t)
 {
+	
   int a=0; // Store position of crossing particle
+  int k=0;
   int n=NPart;
   double m=1; //Let's start by defining all masses as 1
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
@@ -121,6 +123,9 @@ int func( )
   vector <double> X;
   npart.x.reserve(n);
   npart.vx.reserve(n);
+   double Delta_c;// Variables for the crossing times, tc1 and tc2
+
+ 
 
   for (int i = 0; i < n; ++i)
   {
@@ -129,10 +134,10 @@ int func( )
 
   // IF THERE AREN'T ANY CROSSINGS JUST NORMALLY CALCULATING TIME EVOLUTION OF "HARMONIC OSCILLATORS"
   
- for (int i = 0; i < n; ++i)
+ LOOP:for (int i = 0; i < n; ++i)
    {
-   npart.vx[i]=part.vx[i]*cos(Wp*dt)-Wp*X[i]*sin(Wp*dt);
-   npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dt)-X[i]*(1-cos(Wp*dt));
+   npart.vx[i]=part.vx[i]*cos(Wp*t)-Wp*X[i]*sin(Wp*t);
+   npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*t)-X[i]*(1-cos(Wp*t));
     
    }  
 
@@ -155,13 +160,19 @@ for ( int i=0 ; i<n ; i++ )
    	 vel[i]=part.vx[i];
      part.x[i]=npart.x[i];
      part.vx[i]=npart.vx[i];
-
    } 
    }  
   OUT:
-  // else { //implementar a merda de encontrar os tempos de crossing}
+  if (a!=-1){
+    k=k+1;
+	Delta_c= dt*(part.x[a+1]-part.x[a])/(part.x[a+1]-part.x[a]+npart.x[a]-npart.x[a+1]);
+    t=Delta_c;
+    if (k==1) {goto LOOP;}
+    else if (k==2){ cout << " ------------------ TEMPO DE CROSSING ------------- Delta_c2 = " << Delta_c << endl;}
+    }
 
- return a;
+
+ return a; 	
 }
 
 void energy( double time )
@@ -260,7 +271,7 @@ int main()
          k=k+1;
     	cout << " RUN " << k ;
       // Compute positions and velocities at current timestep and determine crossing positions
-      cross=func();
+      cross=func(dt);
       if (cross!=-1) {cout << " \t \t \t \t Partícula " << cross << " choca com partícula " << cross+1 << endl; break;}
       else cout << " \t \t \t \t Partículas não chocaram " << endl;
        
