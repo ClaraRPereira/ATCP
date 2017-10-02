@@ -115,13 +115,14 @@ void initial_conditions() // GOnna Define the initial COnditions
   part.set_values(pos,vel,mass);
 }
 
-double func( double t )
+double func( double time )
 {
 	
   int a=0; // Store position of crossing particle
   int k=0;
   int b;
   int b2;
+  double tt=time;
   int n=NPart;
   double m=1; //Let's start by defining all masses as 1
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
@@ -147,10 +148,10 @@ double func( double t )
 
   // IF THERE AREN'T ANY CROSSINGS JUST NORMALLY CALCULATING TIME EVOLUTION OF "HARMONIC OSCILLATORS"
   
-for (int i = 0; i < n; ++i)
+LOOP:for (int i = 0; i < n; ++i)
     {
-      npart.vx[i]=part.vx[i]*cos(Wp*t)-Wp*X[i]*sin(Wp*t);
-      npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*t)-X[i]*(1-cos(Wp*t));
+      npart.vx[i]=part.vx[i]*cos(Wp*tt)-Wp*X[i]*sin(Wp*tt);
+      npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*tt)-X[i]*(1-cos(Wp*tt));
     
     }   
 
@@ -160,8 +161,7 @@ for (int i = 0; i < n; ++i)
       for ( int  j=i+1 ; j<n ; j++  )      //j=i+1
 	   {
 cout.precision(8);
-double caca;
-double cacaca;
+
  //   if(npart.x[j]<npart.x[i])  xixi=xixi+1;
 	    if(npart.x[i]>npart.x[j])      
        { 
@@ -172,7 +172,7 @@ double cacaca;
         d.push_back(i);
         c.push_back(b); 
         k=k+1;
-        Delta_c= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
+        Delta_c= tt*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
         //t=Delta_c; 
   
         if ( k!=0) {
@@ -180,13 +180,12 @@ double cacaca;
         cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; 
          
             npart.x[b]=part.x[b]+part.vx[b]*sin(Wp*Delta_c)-X[b]*(1-cos(Wp*Delta_c));
-           
             npart.x[b2]=part.x[b2]+part.vx[b2]*sin(Wp*Delta_c)-X[b2]*(1-cos(Wp*Delta_c));
-            
-Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
-            //Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
+            Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
             vec_cross.push_back(Delta_c2);
             cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c2 << endl;
+            tt=Delta_c2-t;
+             goto LOOP;
 
       }
        // else if (k%2==0 && k!=0){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
@@ -195,8 +194,8 @@ Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2])
     }
   }
   
-  if (a==0) // if there are no crossings we just store old values and refresh the new ones
-    {
+  //if (a==0) // if there are no crossings we just store old values and refresh the new ones
+   // {
       for (int i = 0; i < n; ++i)
 	{
 	  pos[i]=part.x[i];
@@ -204,7 +203,7 @@ Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2])
 	  part.x[i]=npart.x[i];
 	  part.vx[i]=npart.vx[i];
 	} 
-    }  
+  //  }  
 
 
 
@@ -342,7 +341,7 @@ cout << endl;
       // Compute positions and velocities at current timestep and determine crossing positions
       tc2=func(dt);
         
-       if (test==0) break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
+      // if (test==0) break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
       // Go to the next timestep
       t = t + dt;
 
