@@ -133,9 +133,10 @@ double func( double t )
   double Delta_c;// Variables for the crossing times, tc1 and tc2
 
  
-  vector<double> c;
-  vector<double> vec_cross(NPart);
+  double c1;
+  vector<double> vec_cross;
   vector<double> d;
+  vector<double> c;
 
 
   for (int i = 0; i < n; ++i)
@@ -163,19 +164,16 @@ double func( double t )
        { 
         a=1;
         b=npart.num[i];
-        cout << "b " << b << endl;
-        cout << endl;
-        c.push_back(b);
+        //c.push_back(b);
         d.push_back(i);
-        cout << "d " << i << endl;
-        //vec_cross[i]=npart.num[i]; 
+        c.push_back(b); 
         k=k+1;
         Delta_c= t*(part.x[b+1]-part.x[b])/(part.x[b+1]-part.x[b]+npart.x[b]-npart.x[b+1]);
         t=Delta_c; 
         vec_cross.push_back(Delta_c);
         cout << " K= " << k << endl;
-        if (k==1 | k==3) {cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; goto LOOP;}
-        else if (k==2 | k==4){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
+        if (k%2!=0 && k!=0) {cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; goto LOOP;}
+        else if (k%2==0 && k!=0){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
        }  // Particle i collides with particle j . 
     }
   }
@@ -191,18 +189,34 @@ double func( double t )
 	} 
     }  
 
+
+
   if (a==1)
    {
-    for (int i = 0; i < c.size(); i=i+2)
+    for (int i = 0; i < d.size(); i=i+2)
     {
-    cout << "\n \t EVENTO: \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
-    npart.num[d[i]]=npart.num[c[i]+1];
-    npart.num[d[i]+1]=c[i];
+    
+    cout << " >>> Merdoca : " ;
+     
+            cout << part.num[d[i]]  << " " << part.num[d[i]+1] << endl;
+            
+
+    c1=npart.num[d[i]];  
+
+    cout << " >>> Merdoca 2 : " ;
+     
+            cout << d[i]  << " " << c1 << endl;
+
+    npart.num[d[i]]=npart.num[d[i]+1];
+    npart.num[d[i]+1]=c1;
     }
    }
   else if (a==0) cout << " \t \t \t \t Partículas não chocaram " << endl;
 
-
+for (int i = 0; i < c.size(); i=i+2)
+{
+  cout << "\n \t EVENTO: \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
+}
   part.num=npart.num;
  
   return Delta_c; 	
@@ -266,7 +280,7 @@ int main()
   NPart = 7; // Number of particles
   int n=NPart;
   double tc2;   // position of crossing
-  Vt=4; // Max velocity
+  Vt=4.5; // Max velocity
   int k=0;
   test=1; // cena cenas
   // Time parameters
