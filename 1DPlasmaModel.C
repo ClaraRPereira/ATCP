@@ -166,12 +166,12 @@ cout.precision(8);
 	    if(npart.x[i]>npart.x[j])      
        { 
         a=1;
+        k=k+1;
         b=npart.num[i];
         b2=npart.num[j];
         //c.push_back(b);
-        d.push_back(i);
-        c.push_back(b); 
-        k=k+1;
+        
+       
         t_c1= dtt*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
         //t=Delta_c; 
         cout << " TEMPO = " << t << endl;
@@ -184,10 +184,16 @@ cout.precision(8);
             cout << " baba " << part.x[b] << " bobo " << part.x[b2] << endl;
             npart.x[b2]=part.x[b2]+part.vx[b2]*sin(Wp*t_c1)-X[b2]*(1-cos(Wp*t_c1));
             Delta_c2= (t_c1-t)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
-            vec_cross.push_back(Delta_c2);
+
             cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c2 << endl;
             dtt=Delta_c2-t;
             cout << " delta c2 " << dtt << endl;
+
+if (k%2!=0){
+        d.push_back(i);
+        c.push_back(b); 
+            vec_cross.push_back(Delta_c2);}
+
              goto LOOP;
 
       }
@@ -213,7 +219,7 @@ cout.precision(8);
 exit:
   if (a==1)
    {
-    for (int i = 0; i < d.size(); i=i+2)
+    for (int i = 0; i < d.size(); i++)
     {
     c1=npart.num[d[i]];  
 
@@ -223,7 +229,7 @@ exit:
    }
   else if (a==0) cout << " \t \t \t \t Partículas não chocaram " << endl;
 int y=0;
-for (int i = 0; i < c.size(); i=i+2)
+for (int i = 0; i < c.size(); i=i++)
 {
   y=y+1;
   cout << "\n \t EVENTO " << y << ": \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
