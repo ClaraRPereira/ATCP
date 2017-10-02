@@ -170,7 +170,10 @@ cout.precision(8);
         b=npart.num[i];
         b2=npart.num[j];
         //c.push_back(b);
-        
+      //  if (k%2!=0){
+        d.push_back(i);
+        c.push_back(b); 
+     // }
        
         t_c1= dtt*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
         //t=Delta_c; 
@@ -189,10 +192,8 @@ cout.precision(8);
             dtt=Delta_c2-t;
             cout << " delta c2 " << dtt << endl;
 
-if (k%2!=0){
-        d.push_back(i);
-        c.push_back(b); 
-            vec_cross.push_back(Delta_c2);}
+
+            vec_cross.push_back(Delta_c2);
 
              goto LOOP;
 
@@ -219,7 +220,7 @@ if (k%2!=0){
 exit:
   if (a==1)
    {
-    for (int i = 0; i < d.size(); i++)
+    for (int i = 0; i < d.size(); i=i+2)
     {
     c1=npart.num[d[i]];  
 
@@ -229,7 +230,7 @@ exit:
    }
   else if (a==0) cout << " \t \t \t \t Partículas não chocaram " << endl;
 int y=0;
-for (int i = 0; i < c.size(); i=i++)
+for (int i = 0; i < c.size(); i=i+2)
 {
   y=y+1;
   cout << "\n \t EVENTO " << y << ": \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
