@@ -121,6 +121,7 @@ double func( double t )
   int a=0; // Store position of crossing particle
   int k=0;
   int b;
+  int b2;
   int n=NPart;
   double m=1; //Let's start by defining all masses as 1
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
@@ -130,7 +131,7 @@ double func( double t )
   npart.x.reserve(n);
   npart.vx.reserve(n);
   X.reserve(n);
-  double Delta_c;// Variables for the crossing times, tc1 and tc2
+  double Delta_c, Delta_c2;// Variables for the crossing times, tc1 and tc2
 
  
   double c1;
@@ -146,7 +147,7 @@ double func( double t )
 
   // IF THERE AREN'T ANY CROSSINGS JUST NORMALLY CALCULATING TIME EVOLUTION OF "HARMONIC OSCILLATORS"
   
- LOOP:for (int i = 0; i < n; ++i)
+for (int i = 0; i < n; ++i)
     {
       npart.vx[i]=part.vx[i]*cos(Wp*t)-Wp*X[i]*sin(Wp*t);
       npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*t)-X[i]*(1-cos(Wp*t));
@@ -158,23 +159,41 @@ double func( double t )
     {
       for ( int  j=i+1 ; j<n ; j++  )      //j=i+1
 	   {
-
+cout.precision(8);
+double caca;
+double cacaca;
  //   if(npart.x[j]<npart.x[i])  xixi=xixi+1;
 	    if(npart.x[i]>npart.x[j])      
        { 
         a=1;
         b=npart.num[i];
+        b2=npart.num[j];
         //c.push_back(b);
         d.push_back(i);
         c.push_back(b); 
         k=k+1;
-        Delta_c= t*(part.x[b+1]-part.x[b])/(part.x[b+1]-part.x[b]+npart.x[b]-npart.x[b+1]);
-        t=Delta_c; 
-        vec_cross.push_back(Delta_c);
-        cout << " K= " << k << endl;
-        if (k%2!=0 && k!=0) {cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; goto LOOP;}
-        else if (k%2==0 && k!=0){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
+        Delta_c= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
+        //t=Delta_c; 
+  
+        if ( k!=0) {
+          cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 ;
+        cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; 
+         
+            //npart.x[b]
+            cacaca=part.x[b]+part.vx[b]*sin(Wp*Delta_c)-X[b]*(1-cos(Wp*Delta_c));
+           
+            //npart.x[b2]
+            caca=part.x[b2]+part.vx[b2]*sin(Wp*Delta_c)-X[b2]*(1-cos(Wp*Delta_c));
+            
+Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+cacaca-caca);
+            //Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
+            vec_cross.push_back(Delta_c2);
+            cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c2 << endl;
+
+      }
+       // else if (k%2==0 && k!=0){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
        }  // Particle i collides with particle j . 
+       //else if (npart.x[i]<npart.x[j] && a==1) cout << " tou a dar merda aqui " << endl;
     }
   }
   
@@ -193,29 +212,21 @@ double func( double t )
 
   if (a==1)
    {
-    for (int i = 0; i < d.size(); i=i+2)
+    for (int i = 0; i < d.size(); i++)
     {
-    
-    cout << " >>> Merdoca : " ;
-     
-            cout << part.num[d[i]]  << " " << part.num[d[i]+1] << endl;
-            
-
     c1=npart.num[d[i]];  
-
-    cout << " >>> Merdoca 2 : " ;
-     
-            cout << d[i]  << " " << c1 << endl;
 
     npart.num[d[i]]=npart.num[d[i]+1];
     npart.num[d[i]+1]=c1;
     }
    }
   else if (a==0) cout << " \t \t \t \t Partículas não chocaram " << endl;
-
-for (int i = 0; i < c.size(); i=i+2)
+int y=0;
+for (int i = 0; i < c.size(); i++)
 {
-  cout << "\n \t EVENTO: \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
+  y=y+1;
+  cout << "\n \t EVENTO " << y << ": \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
+  cout << " TEMPO FINAL DE CROSSING  DO EVENTO  " << y << ": tc2= " << vec_cross[i] << endl;
 }
   part.num=npart.num;
  
@@ -286,7 +297,7 @@ int main()
   // Time parameters
   tmin = 0.0;
   tmax = 10.0;
-  dt = 0.5;
+  dt = 0.7;
   t = tmin; // Initial time
 
   int print=1; // Variable to decide if i want to pront stuff
@@ -326,16 +337,16 @@ cout << endl;
     {
       k=k+1;
       cout << " RUN " << k ;
+     
+      // Compute energies at current timestep
+      energy(t);
+
       // Compute positions and velocities at current timestep and determine crossing positions
       tc2=func(dt);
-
+        
        if (test==0) break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
       // Go to the next timestep
       t = t + dt;
-      
-
-      // Compute energies at current timestep
-      energy(t);
 
       // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
       if (print == 1)
