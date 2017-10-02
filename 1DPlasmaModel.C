@@ -37,6 +37,7 @@ double E_kin;			        //variáveis para imprimir as energias
 double E_pot;
 double E_tot;
 double L=4;  //size of box
+int test; // só para sair do loop se houver uma colisão
 
 vector<double> particles::dir_product (vector<double> a, vector<double> b) // Defining direct product
 {
@@ -110,7 +111,7 @@ void initial_conditions() // GOnna Define the initial COnditions
   part.set_values(pos,vel,mass);
 }
 
-int func( double t)
+double func( double t )
 {
 	
   int a=0; // Store position of crossing particle
@@ -140,7 +141,7 @@ int func( double t)
       npart.vx[i]=part.vx[i]*cos(Wp*t)-Wp*X[i]*sin(Wp*t);
       npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*t)-X[i]*(1-cos(Wp*t));
     
-    }  
+    }   
 
   // LOOPS TO LOOK FOR CROSSINGS
   for ( int i=0 ; i<n ; i++ )
@@ -168,12 +169,14 @@ int func( double t)
     k=k+1;
     Delta_c= t*(part.x[a+1]-part.x[a])/(part.x[a+1]-part.x[a]+npart.x[a]-npart.x[a+1]);
     t=Delta_c; 
-    if (k==1) {cout << " \n --------- 1a APROXIMAÇÃO AO TEMPO DE CROSSING TC1 = " << Delta_c << endl; goto LOOP; }
-    else if (k==2){ cout << "\n  ------------------ TEMPO DE CROSSING ------------- TC2 = " << Delta_c << endl;}
+    if (k==1) {cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; goto LOOP; }
+    else if (k==2){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
   }
 
+  if (a!=-1) {cout << "\n \t EVENTO: \t \t Partícula " << a << " chocou com partícula " << a+1 << endl; test=0;}
+  else if (a==-1) cout << " \t \t \t \t Partículas não chocaram " << endl;
 
-  return a; 	
+  return Delta_c; 	
 }
 
 void energy( double time )
@@ -233,10 +236,10 @@ int main()
    
   NPart = 7; // Number of particles
   int n=NPart;
-  int cross;   // position of crossing
+  double tc2;   // position of crossing
   Vt=3; // Max velocity
   int k=0;
-
+  test=1; // cena cenas
   // Time parameters
   tmin = 0.0;
   tmax = 10.0;
@@ -272,19 +275,22 @@ int main()
       k=k+1;
       cout << " RUN " << k ;
       // Compute positions and velocities at current timestep and determine crossing positions
-      cross=func(dt);
-      if (cross!=-1) {cout << " \t \t \t \t Partícula " << cross << " choca com partícula " << cross+1 << endl; break;}
-      else cout << " \t \t \t \t Partículas não chocaram " << endl;
-       
+      tc2=func(dt);
+
+       if (test==0) break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
       // Go to the next timestep
       t = t + dt;
-      // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
-      if (print == 1){
-	record_trajectories( );
-	record_energies( );}
+      
 
       // Compute energies at current timestep
       energy(t);
+
+      // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
+      if (print == 1)
+      {
+       record_trajectories( );
+       record_energies( );
+      }
 
     }
 
