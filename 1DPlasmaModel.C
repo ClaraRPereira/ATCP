@@ -179,13 +179,11 @@ double cacaca;
           cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 ;
         cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; 
          
-            //npart.x[b]
-            cacaca=part.x[b]+part.vx[b]*sin(Wp*Delta_c)-X[b]*(1-cos(Wp*Delta_c));
+            npart.x[b]=part.x[b]+part.vx[b]*sin(Wp*Delta_c)-X[b]*(1-cos(Wp*Delta_c));
            
-            //npart.x[b2]
-            caca=part.x[b2]+part.vx[b2]*sin(Wp*Delta_c)-X[b2]*(1-cos(Wp*Delta_c));
+            npart.x[b2]=part.x[b2]+part.vx[b2]*sin(Wp*Delta_c)-X[b2]*(1-cos(Wp*Delta_c));
             
-Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+cacaca-caca);
+Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
             //Delta_c2= t*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
             vec_cross.push_back(Delta_c2);
             cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c2 << endl;
