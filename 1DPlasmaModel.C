@@ -20,6 +20,7 @@ public:
   vector<double> x;
   vector<double> vx;
   vector<double> mx;
+  vector<double> num; // need the numbering of the particles in case there are crossings
 };
    
 int NPart;                       // No of particles
@@ -38,6 +39,7 @@ double E_pot;
 double E_tot;
 double L=4;  //size of box
 int test; // só para sair do loop se houver uma colisão
+
 
 vector<double> particles::dir_product (vector<double> a, vector<double> b) // Defining direct product
 {
@@ -91,7 +93,9 @@ void initial_conditions() // GOnna Define the initial COnditions
   
   for ( i=0 ; i<n ; i++ ) 
     {
-
+      
+      part.num.push_back(i);
+      npart.num.push_back(i);
       //Defining the x positions 	
       //part.x[i]+=spc;
       grid.push_back(axis);	
@@ -116,6 +120,7 @@ double func( double t )
 	
   int a=0; // Store position of crossing particle
   int k=0;
+  int b;
   int n=NPart;
   double m=1; //Let's start by defining all masses as 1
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
@@ -128,6 +133,10 @@ double func( double t )
   double Delta_c;// Variables for the crossing times, tc1 and tc2
 
  
+  vector<double> c;
+  vector<double> vec_cross(NPart);
+  vector<double> d;
+
 
   for (int i = 0; i < n; ++i)
     {
@@ -146,15 +155,32 @@ double func( double t )
   // LOOPS TO LOOK FOR CROSSINGS
   for ( int i=0 ; i<n ; i++ )
     {
-      for ( int  j=i+1 ; j<n ; j++  )      
-	{
-	  if(npart.x[i]>npart.x[j])      { a=i; goto OUT;}  // Particle i collides with particle j . Tou a usar o goto só para
-	  // conseguir sair simultaneamente dos dois loops.
-	  else a=-1;                      // There are no collisions
-	}
+      for ( int  j=i+1 ; j<n ; j++  )      //j=i+1
+	   {
+
+ //   if(npart.x[j]<npart.x[i])  xixi=xixi+1;
+	    if(npart.x[i]>npart.x[j])      
+       { 
+        a=1;
+        b=npart.num[i];
+        cout << "b " << b << endl;
+        cout << endl;
+        c.push_back(b);
+        d.push_back(i);
+        cout << "d " << i << endl;
+        //vec_cross[i]=npart.num[i]; 
+        k=k+1;
+        Delta_c= t*(part.x[b+1]-part.x[b])/(part.x[b+1]-part.x[b]+npart.x[b]-npart.x[b+1]);
+        t=Delta_c; 
+        vec_cross.push_back(Delta_c);
+        cout << " K= " << k << endl;
+        if (k==1 | k==3) {cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; goto LOOP;}
+        else if (k==2 | k==4){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
+       }  // Particle i collides with particle j . 
     }
+  }
   
-  if (a==-1) // if there are no crossings we just store old values and refresh the new ones
+  if (a==0) // if there are no crossings we just store old values and refresh the new ones
     {
       for (int i = 0; i < n; ++i)
 	{
@@ -164,18 +190,21 @@ double func( double t )
 	  part.vx[i]=npart.vx[i];
 	} 
     }  
- OUT:
-  if (a!=-1){
-    k=k+1;
-    Delta_c= t*(part.x[a+1]-part.x[a])/(part.x[a+1]-part.x[a]+npart.x[a]-npart.x[a+1]);
-    t=Delta_c; 
-    if (k==1) {cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << Delta_c << endl; goto LOOP; }
-    else if (k==2){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
-  }
 
-  if (a!=-1) {cout << "\n \t EVENTO: \t \t Partícula " << a << " chocou com partícula " << a+1 << endl; test=0;}
-  else if (a==-1) cout << " \t \t \t \t Partículas não chocaram " << endl;
+  if (a==1)
+   {
+    for (int i = 0; i < c.size(); i=i+2)
+    {
+    cout << "\n \t EVENTO: \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
+    npart.num[d[i]]=npart.num[c[i]+1];
+    npart.num[d[i]+1]=c[i];
+    }
+   }
+  else if (a==0) cout << " \t \t \t \t Partículas não chocaram " << endl;
 
+
+  part.num=npart.num;
+ 
   return Delta_c; 	
 }
 
@@ -218,7 +247,7 @@ void energy( double time )
   etotal = kinetic + potential;
 
   // Print the energies and current timestep
-  cout << " " << time << "    "  << kinetic << "    "  << potential << "    "  << etotal  << endl;
+  cout << " \t " << time << "    "  << kinetic << "    "  << potential << "    "  << etotal  << endl;
  
   E_kin=kinetic;
   E_pot=potential;
@@ -237,7 +266,7 @@ int main()
   NPart = 7; // Number of particles
   int n=NPart;
   double tc2;   // position of crossing
-  Vt=3; // Max velocity
+  Vt=4; // Max velocity
   int k=0;
   test=1; // cena cenas
   // Time parameters
@@ -266,8 +295,17 @@ int main()
       cout << part.vx[i] << "   |  Momentum : " << part.mx[i] << " |" << endl;
     }
 
+cout << " >>> Ordenação das Partículas : " ;
+for (int i = 0; i < NPart; ++i)
+{
+  cout << part.num[i] ;
+
+}
+
+cout << endl;
+
   cout << " \n ENERGIAS" << endl;
-  cout << " time   kinetic   potential   total " << endl;
+  cout << " \t time   kinetic   potential   total " << endl;
 
   // Dynamics Iteration
   while ( t < tmax )
@@ -294,6 +332,15 @@ int main()
 
     }
 
+cout << " >>> Ordenação das Partículas : " ;
+for (int i = 0; i < NPart; ++i)
+{
+  cout << part.num[i] ;
+
+}
+
+cout << endl;
+     
 
   // Close trajectories file
   fclose( data );
