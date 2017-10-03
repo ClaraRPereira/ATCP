@@ -88,7 +88,7 @@ void initial_conditions() // GOnna Define the initial COnditions
   double r1;     // auxiliary variable to generate a random
   int i;
   double axis=0; // Start of x axis
-  double spc=1; //defining intersheet spacing
+  double spc=0.1; //defining intersheet spacing
   int n=NPart;
   
   for ( i=0 ; i<n ; i++ ) 
@@ -115,7 +115,7 @@ void initial_conditions() // GOnna Define the initial COnditions
   part.set_values(pos,vel,mass);
 }
 
-double func( double dtime )
+void loop( double dtime )
 {
 	
   int a=0; // Store position of crossing particle
@@ -127,7 +127,7 @@ double func( double dtime )
   double m=1; //Let's start by defining all masses as 1
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
-  double Wp=1;
+  double Wp=0.5;
   vector <double> X;
   npart.x.reserve(n);
   npart.vx.reserve(n);
@@ -141,26 +141,56 @@ double func( double dtime )
   vector<double> c;
 
 
-  for (int i = 0; i < n; ++i)
+ for (int i = 0; i < n; ++i)
     {
       X[i]=part.x[i]-grid[i];
     }
 
   // IF THERE AREN'T ANY CROSSINGS JUST NORMALLY CALCULATING TIME EVOLUTION OF "HARMONIC OSCILLATORS"
   
-LOOP:for (int i = 0; i < n; ++i)
+for (int i = 0; i < n; ++i)
     {
       npart.vx[i]=part.vx[i]*cos(Wp*dtt)-Wp*X[i]*sin(Wp*dtt);
       npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtt)-X[i]*(1-cos(Wp*dtt));
-    
     }   
+
+}    
+
+double func(double dtime)
+{
+
+ int a=0; // Store position of crossing particle
+  int k=0;
+  int b;
+  int b2;
+  double dtt=dtime;
+  double dt2;
+  int n=NPart;
+  double m=1; //Let's start by defining all masses as 1
+  //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
+  //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
+  double Wp=0.5;
+  vector <double> X;
+  npart.x.reserve(n);
+  npart.vx.reserve(n);
+  X.reserve(n);
+  double t_c1, Delta_c2;// Variables for the crossing times, tc1 and tc2
+
+ 
+  double c1;
+  vector<double> vec_cross;
+  vector<double> d;
+  vector<double> c;
+  double temp, temp1;
+  int o=0;
+
+  loop(dtt);
 
   // LOOPS TO LOOK FOR CROSSINGS
   for ( int i=0 ; i<n ; i++ )
     {
       for ( int  j=i+1 ; j<n ; j++  )      //j=i+1
 	   {
-cout.precision(8);
 
  //   if(npart.x[j]<npart.x[i])  xixi=xixi+1;
 	    if(npart.x[i]>npart.x[j])      
@@ -169,44 +199,39 @@ cout.precision(8);
         k=k+1;
         b=npart.num[i];
         b2=npart.num[j];
-        //c.push_back(b);
-      //  if (k%2!=0){
+
+         cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 ;//c.push_back(b);
+
         d.push_back(i);
         c.push_back(b); 
-     // }
+
        
         t_c1= dtt*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
-        //t=Delta_c; 
-        cout << " TEMPO = " << t << endl;
-        if ( k!=0 && k<2) {
-          cout << " CROSSING  entre posições : " <<  b << " e " << b + 1 ;
+
         cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c1 << endl; 
+         cout << " t " << t;
          
-            npart.x[b]=part.x[b]+part.vx[b]*sin(Wp*t_c1)-X[b]*(1-cos(Wp*t_c1));
-            cout << " baba " << npart.x[b] << " bobo " << npart.x[b2] << endl;
-            cout << " baba " << part.x[b] << " bobo " << part.x[b2] << endl;
-            npart.x[b2]=part.x[b2]+part.vx[b2]*sin(Wp*t_c1)-X[b2]*(1-cos(Wp*t_c1));
-            Delta_c2= (t_c1-t)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
+        temp=part.x[b]+part.vx[b]*sin(Wp*t_c1)-X[b]*(1-cos(Wp*t_c1));
+        temp1=part.x[b2]+part.vx[b2]*sin(Wp*t_c1)-X[b2]*(1-cos(Wp*t_c1));
+        Delta_c2= (t_c1-t)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
 
-            cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c2 << endl;
-            dtt=Delta_c2-t;
-            cout << " delta c2 " << dtt << endl;
+        cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c2 << endl;
+            
+        dt2=t+Delta_c2;
 
+        vec_cross.push_back(Delta_c2);
+        if (dt2>=t+dt) goto exit;
+        else loop(dt2);
+      
 
-            vec_cross.push_back(Delta_c2);
-
-             goto LOOP;
-
-      }
-      if (k==2) test=0;goto exit;
        // else if (k%2==0 && k!=0){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
-       }  // Particle i collides with particle j . 
-       //else if (npart.x[i]<npart.x[j] && a==1) cout << " tou a dar merda aqui " << endl;
+       } 
+       else if (a==0) goto exit;// Particle i collides with particle j . 
     }
   }
-  
-  //if (a==0) // if there are no crossings we just store old values and refresh the new ones
-   /*// {
+
+ exit: //if (a==0) // if there are no crossings we just store old values and refresh the new ones
+   // {
       for (int i = 0; i < n; ++i)
 	{
 	  pos[i]=part.x[i];
@@ -215,12 +240,11 @@ cout.precision(8);
 	  part.vx[i]=npart.vx[i];
 	} 
   //  }  
-*/
 
-exit:
+
   if (a==1)
    {
-    for (int i = 0; i < d.size(); i=i+2)
+    for (int i = 0; i < d.size(); i++)
     {
     c1=npart.num[d[i]];  
 
@@ -230,7 +254,7 @@ exit:
    }
   else if (a==0) cout << " \t \t \t \t Partículas não chocaram " << endl;
 int y=0;
-for (int i = 0; i < c.size(); i=i+2)
+for (int i = 0; i < c.size(); i++)
 {
   y=y+1;
   cout << "\n \t EVENTO " << y << ": \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
@@ -296,16 +320,16 @@ int main()
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
     	
    
-  NPart = 7; // Number of particles
+  NPart = 100; // Number of particles
   int n=NPart;
   double tc2;   // position of crossing
-  Vt=4.5; // Max velocity
+  Vt=5; // Max velocity
   int k=0;
   test=1; // cena cenas
   // Time parameters
   tmin = 0.0;
-  tmax = 2;
-  dt =2;
+  tmax = 1;
+  dt =0.1;
   t = tmin; // Initial time
 
   int print=1; // Variable to decide if i want to pront stuff
@@ -369,7 +393,7 @@ cout << endl;
 cout << " >>> Ordenação das Partículas : " ;
 for (int i = 0; i < NPart; ++i)
 {
-  cout << part.num[i] ;
+  cout << part.num[i] << " , ";
 
 }
 
