@@ -327,11 +327,11 @@ LOOP:
          }
          //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
         // cout << " t_c" << t_c << endl;
-       //if (t_c >0)
-       //{
+       if (t_c >0)
+       {
         vec_cross[i]=t_c;
-       // cout << " t_c" << t_c << endl;
-       //}
+        cout << "\n CACACAC t_c " << t_c << endl;
+       }
       }
     }
   }
@@ -355,15 +355,15 @@ if(col!=0)
     }
   }
 
-  //store_time=store_time+min_tc2;
+  store_time=store_time+min_tc2;
   //cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
   c2=npart.num[b3[c1]];  
   npart.num[b3[c1]]=npart.num[b3[c1]+1];
   npart.num[b3[c1]+1]=c2;
   
-  //time=t+store_time;
-  time=t+min_tc2;
+  time=t+store_time;
+  //time=t+min_tc2;
   loop(time,b3[c1]);
 }
 
@@ -379,7 +379,7 @@ cout <<" estou a chegar aqui                         222222222222222222222222222
 
 if(time<t+dt)
 {
-  loop(dt-min_tc2,0);
+  loop(dt-store_time,0);
   //col=0;
   goto LOOP;
 }
