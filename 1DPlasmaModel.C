@@ -200,7 +200,7 @@ LOOP:  for ( int i=0 ; i<n ; i++ )
 	   {
 
  //   if(npart.x[j]<npart.x[i])  xixi=xixi+1;
-	    if(npart.x[i]>npart.x[j])      
+	    if(npart.x[i]>=npart.x[j])      
        { 
         a=1;
         k=k+1;
@@ -227,7 +227,7 @@ LOOP:  for ( int i=0 ; i<n ; i++ )
         dt2=t+Delta_c2;
 
         vec_cross.push_back(Delta_c2);
-        if (dt2>=t+dt) goto exit;
+        if (dt2>t+dt) goto exit;
         else {loop(dt2,0); 
               loop(t+dt-Delta_c2,3);
                goto LOOP;}
