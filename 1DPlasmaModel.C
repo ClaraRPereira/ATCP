@@ -115,11 +115,10 @@ void initial_conditions() // GOnna Define the initial COnditions
   part.set_values(pos,vel,mass);
 }
 
-void loop( double dtime )
+void loop( double dtime , int k)
 {
 	
   int a=0; // Store position of crossing particle
-  int k=0;
   int b;
   int b2;
   double dtt=dtime;
@@ -140,6 +139,14 @@ void loop( double dtime )
   vector<double> d;
   vector<double> c;
 
+if (k==3){
+  for (int m = 0;  m< n; ++m)
+  {
+    pos[m]=part.x[m];
+    vel[m]=part.vx[m];
+    part.x[m]=npart.x[m];
+    part.vx[m]=npart.vx[m];
+  } }
 
  for (int i = 0; i < n; ++i)
     {
@@ -156,14 +163,14 @@ for (int i = 0; i < n; ++i)
 
 }    
 
-double func(double dtime)
+double func()
 {
 
  int a=0; // Store position of crossing particle
   int k=0;
   int b;
   int b2;
-  double dtt=dtime;
+  double dtt=dt;
   double dt2;
   int n=NPart;
   double m=1; //Let's start by defining all masses as 1
@@ -184,10 +191,10 @@ double func(double dtime)
   double temp, temp1;
   int o=0;
 
-  loop(dtt);
+  loop(dtt,0);
 
   // LOOPS TO LOOK FOR CROSSINGS
-  for ( int i=0 ; i<n ; i++ )
+LOOP:  for ( int i=0 ; i<n ; i++ )
     {
       for ( int  j=i+1 ; j<n ; j++  )      //j=i+1
 	   {
@@ -221,7 +228,9 @@ double func(double dtime)
 
         vec_cross.push_back(Delta_c2);
         if (dt2>=t+dt) goto exit;
-        else loop(dt2);
+        else {loop(dt2,0); 
+              loop(t+dt-Delta_c2,3);
+               goto LOOP;}
       
 
        // else if (k%2==0 && k!=0){ cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << Delta_c << endl;}
@@ -257,7 +266,7 @@ int y=0;
 for (int i = 0; i < c.size(); i++)
 {
   y=y+1;
-  cout << "\n \t EVENTO " << y << ": \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; test=0;
+  cout << "\n \t EVENTO " << y << ": \t \t Partícula " << c[i] << " chocou com partícula " << c[i]+1 << endl; //test=0;
   cout << " TEMPO FINAL DE CROSSING  DO EVENTO  " << y << ": tc2= " << vec_cross[i] << endl;
 }
   part.num=npart.num;
@@ -355,7 +364,7 @@ int main()
 cout << " >>> Ordenação das Partículas : " ;
 for (int i = 0; i < NPart; ++i)
 {
-  cout << part.num[i] ;
+  cout << part.num[i] << " ,";
 
 }
 
@@ -375,7 +384,7 @@ cout << endl;
       energy(t);
 
       // Compute positions and velocities at current timestep and determine crossing positions
-      tc2=func(dt);
+      tc2=func();
         
        if (test==0) break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
       // Go to the next timestep
