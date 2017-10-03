@@ -22,9 +22,10 @@ vector<double> grid;             // vector for storing equilibrium positions on 
 double dt, tmin, tmax;           // Time grid
 double t;                        // Time variable (evolving time)  
 
-vector<double> mass(NPart);      // Vector for storing particle masses
-vector<double> pos(NPart);       // Positions
-vector<double> vel(NPart);       // Velocities
+vector<double> mass;      // Vector for storing particle masses
+vector<double> pos;       // Positions
+vector<double> vel;       // Velocities
+vector <double> X;        // Displacements
 
 FILE *data, *energies;           // Create files to store the particle data and the energies
 
@@ -36,7 +37,7 @@ double E_kin;
 double E_pot;
 double E_tot;
 
-double L = 4;  //size of box
+double spacing = 0.1;  //size of box
 
 bool colision = false;    // Checks if a colision was found
 bool print    = true;     // Variable to decide if i want to print stuff
@@ -67,7 +68,7 @@ int main(){
   Vt = 5; // Max velocity
   // Time parameters
   tmin = 0.0;
-  tmax = 1;
+  tmax = 0.5;
   dt =0.1;
   t = tmin; // Initial time
 
@@ -199,37 +200,31 @@ void initial_conditions(){ // Gonna Define the initial Conditions
 
     // random velocities according to uniform distribution
     r1 = (double)rand() / (double)RAND_MAX;  // generating rando between 0 and 1
-    vel.push_back(Vt * r1);
-    // cout << " vel: " << vel[i] << endl;
-
+    vel.push_back(Vt*r1);
+     //cout << " r1: " << Vt*r1 << endl;
+    X.push_back(0);
     // Defining the masses
     mass.push_back(m);
   }
 
   part.set_values(pos,vel,mass);
+  npart.set_values(pos,vel,mass);
 }
 
 void 
-loop( double dtime , int k){
+loop( double dtime , int a ){
 
-  int a=0; // Store position of crossing particle
-  double dtt=dtime;
+  //int a=0; // Store position of crossing particle
+  double dtt=dtime+t;
   //double m = 1; //Let's start by defining all masses as 1   ************ PERIGO porque usavas o m para o for ***********
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
   double Wp = 0.5;
-  vector <double> X;
-  npart.x.reserve( NPart);
-  npart.vx.reserve( NPart);
-  X.reserve( NPart);
-  double t_c1, Delta_c2;// Variables for the crossing times, tc1 and tc2
 
-  double c1;
-  vector<double> vec_cross;
   vector<double> d;
   vector<double> c;
 
-  if (k==3){
+  /*if (k==3){
     for (int i = 0;  i < NPart; ++i){
 
       pos[i] = part.x[i];
@@ -237,11 +232,17 @@ loop( double dtime , int k){
       part.x[i] = npart.x[i];
       part.vx[i]= npart.vx[i];
     } 
-  }
+  }*/
 
   for (int i = 0; i < NPart; ++i)
   {
-    X[i]=part.x[i]-grid[i];
+    X[i]=npart.x[i]-part.x[i];
+  }
+
+  if(a!=0) 
+  {
+    X[a]=X[a]+ spacing;
+    X[a+1]=X[a+1]-spacing;
   }
 
     // IF THERE AREN'T ANY CROSSINGS JUST NORMALLY CALCULATING TIME EVOLUTION OF "HARMONIC OSCILLATORS"
@@ -257,34 +258,140 @@ double
 func(){
 
   int a=0; // Store position of crossing particle
-  int k=0;
-  int b;
+  int a2=0;
+  vector<double> b3(NPart);
   int b2;
-  double dtt=dt;
-  double dt2;
+  int b;
   int n=NPart;
-  double m=1; //Let's start by defining all masses as 1
-  //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
-  //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
+  double dtt=dt;
+  double t_c; //, t_c2;// Variables for the crossing times, tc1 and tc2
+  vector<double> vec_cross(NPart);
+  double min_tc2=0;
+  double c1;
+  double c2;
+  int num_col=0;
+
+  int col=0;
+  double time=t+dt; // I wanna know where my time is at
+
   double Wp=0.5;
-  vector <double> X;
+
+  b3.reserve(NPart);
+  vec_cross.reserve(NPart);
+
   npart.x.reserve(n);
   npart.vx.reserve(n);
-  X.reserve(n);
-  double t_c1, Delta_c2;// Variables for the crossing times, tc1 and tc2
+  double store_time=0;
 
 
-  double c1;
-  vector<double> vec_cross;
+  double min;
+
+
   vector<double> d;
   vector<double> c;
   double temp, temp1;
   
-  // int o=0; ???? 
 
   loop(dtt,0);
 
-  // LOOPS TO LOOK FOR CROSSINGS
+LOOP:
+  //col=0;
+  //vec_cross.clear();
+  //b3.clear();
+  for (int i = 0; i < n; ++i)
+  {
+    for (int j = i+1; j < n; ++j)
+    {
+
+      
+      if(npart.x[i]>npart.x[j])
+      {
+        col=1; // Houve pelo menos uma colisão
+        num_col=num_col+1; // Quero saber quantas colisões houve
+        b=npart.num[i];
+        b3[i]=i;
+        a=i;
+        b2=npart.num[j];
+        a2=j;
+
+        cout << " CROSSING  entre posições : " <<  i << " e " << j ;
+        t_c= dtt*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
+        cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
+
+        temp=part.x[b]+part.vx[b]*sin(Wp*t_c)-X[b]*(1-cos(Wp*t_c));
+        temp1=part.x[b2]+part.vx[b2]*sin(Wp*t_c)-X[b2]*(1-cos(Wp*t_c));
+         if(part.x[b2]-part.x[b]+temp-temp1 > 0.001)
+         {
+          t_c= (t_c-t)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
+          cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
+         }
+         //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
+        // cout << " t_c" << t_c << endl;
+       //if (t_c >0)
+       //{
+        vec_cross[i]=t_c;
+       // cout << " t_c" << t_c << endl;
+       //}
+      }
+    }
+  }
+
+cout <<" estou a chegar aqui                             1111111111111111111111111111" << endl;
+
+if(col!=0)
+{
+
+  min_tc2=vec_cross[0];
+  c1=0;
+ // min_tc2=*min_element(vec_cross.begin(), vec_cross.end());
+  for (int j = 1; j < vec_cross.size(); ++j)
+  {
+    int i=0;
+    if(vec_cross[i]>vec_cross[j] && vec_cross[j]>0) 
+    { 
+     min_tc2=vec_cross[j];
+     // cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
+     c1=j;
+    }
+  }
+
+  //store_time=store_time+min_tc2;
+  //cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
+
+  c2=npart.num[b3[c1]];  
+  npart.num[b3[c1]]=npart.num[b3[c1]+1];
+  npart.num[b3[c1]+1]=c2;
+  
+  //time=t+store_time;
+  time=t+min_tc2;
+  loop(time,a);
+}
+
+cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222" << endl;
+
+  for (int i = 0;  i < NPart; ++i)
+  {
+    pos[i] = part.x[i];
+    vel[i] = part.vx[i];
+    part.x[i] = npart.x[i];
+    part.vx[i]= npart.vx[i];
+  } 
+
+if(time<t+dt)
+{
+  loop(dt-min_tc2,0);
+  //col=0;
+  goto LOOP;
+}
+
+cout <<" estou a chegar aqui" << endl;
+
+ part.num=npart.num;
+ return t_c;
+}
+
+
+ /* // LOOPS TO LOOK FOR CROSSINGS
   LOOP:  for ( int i=0 ; i<n ; i++ ){
     for ( int  j=i+1 ; j<n ; j++  ){      //j=i+1
 
@@ -369,7 +476,7 @@ func(){
 
   part.num=npart.num;
   return t_c1;  
-}
+}*/
 
 void energy( double time ){
 
