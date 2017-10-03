@@ -37,7 +37,7 @@ double E_kin;
 double E_pot;
 double E_tot;
 
-double spacing = 0.1;  //size of box
+double spacing = 0.2;  //size of box
 
 bool colision = false;    // Checks if a colision was found
 bool print    = true;     // Variable to decide if i want to print stuff
@@ -185,7 +185,7 @@ void initial_conditions(){ // Gonna Define the initial Conditions
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
   double r1;     // auxiliary variable to generate a random
   double axis = 0; // Start of x axis
-  double spc  = 0.1; //defining intersheet spacing
+  double spc  = 0.2; //defining intersheet spacing
   
   for (int i = 0 ; i< NPart ; i++ ){
 
@@ -364,7 +364,7 @@ if(col!=0)
   
   //time=t+store_time;
   time=t+min_tc2;
-  loop(time,a);
+  loop(time,b3[c1]);
 }
 
 cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222" << endl;
