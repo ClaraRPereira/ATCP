@@ -65,7 +65,7 @@ int main(){
 
   int k=0;
   double tc2;   // position of crossing
-  Vt = 3; // Max velocity
+  Vt = 2; // Max velocity
   // Time parameters
   tmin = 0.0;
   tmax = 2;
@@ -309,12 +309,12 @@ LOOP:
         col=1; // Houve pelo menos uma colisão
         num_col=num_col+1; // Quero saber quantas colisões houve
         b=npart.num[i];
-        b3.push_back(i);
+        b3.push_back(b);
         a=i;
         b2=npart.num[j];
         a2=j;
 
-        cout << " CROSSING  entre posições : " <<  i << " e " << j ;
+        cout << " CROSSING  entre posições : " <<  b << " e " << b2 ;
         t_c= dtt*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
         cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
 
@@ -328,7 +328,7 @@ LOOP:
          else t_c2=t_c;
          //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
         // cout << " t_c" << t_c << endl;
-       if (t_c >0 && t_c < dt)
+       if ( t_c < dt)
        {
         vec_cross.push_back(t_c);
         cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
@@ -356,7 +356,7 @@ if(col!=0)
     }
   }
   
-  cout << " SELECIONEI A COLISÃO " << c1 << " E " <<  c1+1 << endl;
+  cout << " SELECIONEI A COLISÃO " << b3[c1] << " E " <<  b3[c1]+1 << endl;
 
   cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
   store_time=store_time+min_tc2;
