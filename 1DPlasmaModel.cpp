@@ -43,15 +43,15 @@ double L=20;  //size of box
 bool colision = false;    // Checks if a colision was found
 bool print    = true;     // Variable to decide if i want to print stuff
 
-void initial_conditions();      // Inicia as partículas com as condições iniciais
-void record_trajectories();     
-void record_energies();
+void initial_conditions();     // Inicia as partículas com as condições iniciais
+void record_trajectories();    // Writes trajectories to a file
+void record_energies();        // Writes energies to a file
 
 void PrintParStatsAll();      // Print position, velocity, and momentum of every particle
 void PrintParStats(int i);
 void PrintParOrder();
 
-void loop(double dtime , int k);
+void loop(double dtime , int k);  // Methods  for the main algorithm
 void energy( double time );
 
 double func();
@@ -62,23 +62,18 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 100; // Number of particles
-
-  int k=0;
-  double tc2=0;   // position of crossing
-  Vt = 2; // Max velocity
+  NPart = 100;   // Number of particles
+  Vt = 2;        // Max absolute velocity
+  
   // Time parameters
   tmin = 0.0;
-  tmax = 0.1;
-  dt = 0.03;
-  t = tmin; // Initial time
+  tmax = 0.1;   // Simulation time
+  dt = 0.01;    // Time step
+  t = tmin;     // Initial time
 
   // Create the files to store the data
   data = fopen( "DATA", "w" );
   energies = fopen( "ENERGY", "w" );
-
-
-  //mass.reserve(NPart);
 
   initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
@@ -92,14 +87,13 @@ int main(){
   // Dynamics Iteration
   while ( t < tmax ){
 
-    k=k+1;
     cout << " TEMPO " << t << endl;
 
     // Compute energies at current timestep
     energy(t);
 
     // Compute positions and velocities at current timestep and determine crossing positions
-    tc2 = func();
+    func();
 
     if (colision) 
       break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
@@ -108,18 +102,15 @@ int main(){
     t = t + dt;
     //PrintParStatsAll();
 
-      // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
+    // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
     if (print){
 
       record_trajectories( );
       record_energies( );
     }
-
   }
 
-
- 
-  // Close trajectories file
+  // Close trajectory and energy files
   fclose( data );
   fclose( energies );
 
@@ -127,7 +118,7 @@ int main(){
 }
 
 void
-PrintParStatsAll(){
+PrintParStatsAll(){            // Prints TO THE TERIMNAL position, velocity and momentum for all particles
 
   // Print, to the terminal, positions, velocities & momenta.
   cout << " Nº Partículas:  " << NPart << " \n " << endl;
@@ -140,14 +131,14 @@ PrintParStatsAll(){
 }
 
 void
-PrintParStats(int i){
+PrintParStats(int i){          // Prints TO THE TERIMNAL position, velocity and momentum for particle i
 
   cout << " Partícula " << i << " \t Position : " << part.x[i] << " |  Velocity :  " ;
   cout << part.vx[i] << "   |  Momentum : " << part.mx[i] << " |" << endl;  
 }
 
 void 
-PrintParOrder(){
+PrintParOrder(){              // Prints TO THE TERMINAL particle ordering
 
   cout << " >>> Ordenação das Partículas : " ;
   for (int i = 0; i < NPart; ++i){
@@ -179,85 +170,59 @@ void initial_conditions(){ // Gonna Define the initial Conditions
 
   vector<double> Px; 
 
-  double m = 1; //Let's start by defining all masses as 1
-  //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
-  //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
-  double r1;     // auxiliary variable to generate a random
-  double r2;
-  double axis = 0; // Start of x axis
-  double spc  = L/NPart; //defining intersheet spacing
+  double m = 1;           // Let's start by defining all masses as 1
+  double r1;              // auxiliary variable to generate a random
+  double r2;              // auxiliary variable for another random
+  double axis = 0;        // Start of x axis
+  double spc  = L/NPart;  // Defining intersheet spacing
   
-  for (int i = 0 ; i< NPart ; i++ ){
+  for (int i = 0 ; i< NPart ; i++ ){  // For loop to set the different initial vectors
 
-    part.num.push_back(i);
+    part.num.push_back(i);  // Defining Particle ordering
     npart.num.push_back(i);
+    
     //Defining the x positions  
-    //part.x[i]+=spc;
     grid.push_back(axis); 
     pos.push_back(axis);
-    //cout << " pos: " << pos[i] << endl;
     axis += spc;
 
     // random velocities according to uniform distribution
     r1 = (double)rand() / (double)RAND_MAX;  // generating rando between 0 and 1
     r2 = (double)rand() / (double)RAND_MAX;  
     if(r2>=0.5) vel.push_back(Vt*r1);
-    else if (r2<0.5) vel.push_back(-Vt*r1);
-     //cout << " r1: " << Vt*r1 << endl;
-    X.push_back(0);
+    else if (r2<0.5) vel.push_back(-Vt*r1);  // Randomly distributing velocities between -Vt and Vt
+
+    X.push_back(0);           // Initializing displacement vector at zero
+
     // Defining the masses
     mass.push_back(m);
   }
 
-  part.set_values(pos,vel,mass);
+  part.set_values(pos,vel,mass);        // Setting the values for the current particles and the new particles. 
   npart.set_values(pos,vel,mass);
 }
 
 void 
 loop( double dtime , int a ){
 
-  //int a=0; // Store position of crossing particle
-  //double dtt=dtime+t;
-  double dtt=dtime;
-  //double m = 1; //Let's start by defining all masses as 1   ************ PERIGO porque usavas o m para o for ***********
-  //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
-  //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
   double Wp = 1;
+  double aux;    // auxiliary variable to store old values of stuff
 
-  //vector<double> d;
-  //vector<double> c;
-  double ggg;
-
-  /*if (k==3){
-    for (int i = 0;  i < NPart; ++i){
-
-      pos[i] = part.x[i];
-      vel[i] = part.vx[i];
-      part.x[i] = npart.x[i];
-      part.vx[i]= npart.vx[i];
-    } 
-  }*/
-  /*if(a!=0)
-  {
-    cout << " velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
-    cout << " velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
-  }*/
-  
   double media;
-
+/*
   if(a!=0) 
   {
     media=(pos[a+1]+pos[a])*0.5;
-    ggg=part.vx[a];
-    part.vx[a]=npart.vx[a+1];
-    part.vx[a+1]=ggg;
+    aux=part.vx[a];
+    part.vx[a]=part.vx[a+1];
+    part.vx[a+1]=aux;
     part.x[a]=media;
     part.x[a+1]=media;
     cout << " nova velocidade da particula " << npart.num[a] << " é " << part.vx[a] << endl;
     cout << " nova velocidade da particula " << npart.num[a+1] << " é " << part.vx[a+1] << endl;
     cout << " nova posiçao da particula " << npart.num[a] << " é " << part.x[a] << endl;
     cout << " nova posiçao da particula " << npart.num[a+1] << " é " << part.x[a+1] << endl;
-  }
+  } */
   
   for (int i = 0; i < NPart; ++i)
   {
@@ -271,9 +236,24 @@ loop( double dtime , int a ){
 
   for (int i = 0; i < NPart; ++i){
 
-    npart.vx[i]=part.vx[i]*cos(Wp*dtt)-Wp*X[i]*sin(Wp*dtt);
-    npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtt)-X[i]*(1-cos(Wp*dtt));
+    npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);
+    npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtime)-X[i]*(1-cos(Wp*dtime));
+    if (npart.x[i]<0) npart.x[i]=0;
   }   
+
+  if(a!=-1) 
+  {
+    media=(pos[a+1]+pos[a])*0.5;
+    aux=npart.vx[a];
+    npart.vx[a]=npart.vx[a+1];
+    npart.vx[a+1]=aux;
+    npart.x[a]=media;
+    npart.x[a+1]=media;
+    cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
+    cout << " nova velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
+    cout << " nova posiçao da particula " << npart.num[a] << " é " << npart.x[a] << endl;
+    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << npart.x[a+1] << endl;
+  }
 
 
 }    
@@ -309,9 +289,9 @@ func(){
   double temp, temp1;
   cout.precision(17);  
 
-  loop(dtt,0);
+  loop(dtt,-1);
 
-LOOP:
+  LOOP:
   col=0;
   vec_cross.clear();
   b3.clear();
@@ -344,7 +324,7 @@ LOOP:
         }
         else t_c2=t_c;
         // cout << " t_c" << t_c << endl;
-        if ( t_c2 < dt && t_c2>0)
+        if ( t_c2 < dt && t_c2>0 )
         {
           b3.push_back(b);
           vec_cross.push_back(t_c2);
@@ -393,10 +373,7 @@ for (int i = 0; i < n; ++i)
     loop(min_tc2,b3[c1]);
   }
 
-  if (col==0) 
-  {
-    cout << " não houve colisºao" << endl;
-  }
+
 
 //cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222 vou incrementar " << time << endl;
 
@@ -420,16 +397,14 @@ for (int i = 0; i < n; ++i)
 
  //t=t+min_tc2;
 
-if ( dt - store_time < 0.00001)
-{
-  cout << " dt - store_time " << dt- store_time<< endl;
-   loop(dt-store_time,0);
-   dtt=dt-store_time;
-   goto LOOP;
-} 
-else if ( dt - store_time < 0.001)  cout << " tou a bazar daqui                                      1111111111111111" << endl;
-//cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
-  cout << " TEMPO " << t << endl;
+  if ( dt - store_time < 0.00001)
+  {
+    cout << " dt - store_time " << dt- store_time<< endl;
+    loop(dt-store_time,-1);
+    dtt=dt-store_time;
+    goto LOOP;
+  } 
+
 
   return min_tc2;
 }
