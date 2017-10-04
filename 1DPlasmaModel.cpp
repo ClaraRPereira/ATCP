@@ -61,11 +61,11 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 20; // Number of particles
+  NPart = 10; // Number of particles
 
   int k=0;
   double tc2;   // position of crossing
-  Vt = 2; // Max velocity
+  Vt = 4; // Max velocity
   // Time parameters
   tmin = 0.0;
   tmax = 2;
@@ -290,7 +290,7 @@ func(){
   vector<double> d;
   vector<double> c;
   double temp, temp1;
-  
+cout.precision(17);  
 
   loop(dtt,0);
 
@@ -304,7 +304,7 @@ LOOP:
     {
 
       
-      if(npart.x[i]>npart.x[j])
+      if(npart.x[i]>npart.x[j]  && j==i+1)
       {
         col=1; // Houve pelo menos uma colisão
         num_col=num_col+1; // Quero saber quantas colisões houve
@@ -320,19 +320,20 @@ LOOP:
 
         temp=part.x[b]+part.vx[b]*sin(Wp*t_c)-X[b]*(1-cos(Wp*t_c));
         temp1=part.x[b2]+part.vx[b2]*sin(Wp*t_c)-X[b2]*(1-cos(Wp*t_c));
-         if(part.x[b2]-part.x[b]+temp-temp1 > 0.001)
+         if(part.x[b2]-part.x[b]+temp-temp1 > 0.01)
          {
-          t_c2= (t_c-t)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
-          //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
+          t_c2= (t_c)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
+          cout << "\n o t do sistema é  " << t << " e o tc2 é " << t_c2 << endl;
          }
          else t_c2=t_c;
          //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
         // cout << " t_c" << t_c << endl;
-       if ( t_c < dt)
+       if ( t_c2 < dt)
        {
-        vec_cross.push_back(t_c);
-        cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
+        vec_cross.push_back(t_c2);
+        cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c2  <<" e o time step é : " << dt << endl;
        }
+       else if (t_c2 > dt ) cout << " Deu merda aqui" << endl;
       }
     }
   }
@@ -367,11 +368,12 @@ if(col!=0)
   npart.num[b3[c1]+1]=c2;
   
   time=t+store_time;
+  
   //time=t+min_tc2;
   loop(time,b3[c1]);
 }
 
-cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222" << endl;
+cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222 vou incrementar " << time << endl;
 
   for (int i = 0;  i < NPart; ++i)
   {
@@ -383,12 +385,14 @@ cout <<" estou a chegar aqui                         222222222222222222222222222
 
 if(time- (t+dt)>0.1 )
 {
-  loop(dt-store_time,0);
+  
+  if(store_time>dt) loop(dt,0);
+    else loop(dt-store_time,0);
   col=0;
   goto LOOP;
 }
 
-cout <<" estou a chegar aqui" << endl;
+cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
 
  part.num=npart.num;
  return t_c;
