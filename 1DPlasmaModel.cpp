@@ -311,7 +311,7 @@ func(){
 
   loop(dtt,0);
 
-//LOOP:
+LOOP:
   col=0;
   vec_cross.clear();
   b3.clear();
@@ -418,16 +418,16 @@ for (int i = 0; i < n; ++i)
  // time + 0.001 > dt 
 //if (col==0) {loop(dt,0); delta =dt; goto LOOP;}
 
-  t=t+min_tc2;
-/*
+ // t=t+min_tc2;
+
 if ( dt - store_time > 0.01 )
 {
   cout << " dt - store_time " << dt- store_time<< endl;
    loop(dt-store_time,0);
-   delta=dt-store_time;
+   dtt=dt-store_time;
    goto LOOP;
-} */
-//else if ( dt - store_time < 0.01)  cout << " tou a bazar daqui                                      1111111111111111" << endl;
+} 
+else if ( dt - store_time < 0.01)  cout << " tou a bazar daqui                                      1111111111111111" << endl;
 //cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
   cout << " TEMPO " << t << endl;
 
