@@ -345,17 +345,7 @@ void energy( double time ){
 
   double kinetic, potential, pot, etotal;
 
-  double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
-  double E0= 4*M_PI*sigma*n0; // Amplitude campo Eléctrico
   double xij, xij2;
-
-  // Kinetic energy of the system
-  /*kinetic = 0.0;
-  for ( i=0 ; i<NPart ; i++ ){
-
-    kinetic = kinetic + 0.5 * part.mx[i]*part.vx[i];
-
-  }*/
 
   for (int i = 0; i < NPart; ++i){
 
@@ -371,7 +361,7 @@ void energy( double time ){
 
       xij2 = xij*xij;
 
-      pot = - E0 * ( xij2/2 );
+      pot = -  ( xij2/2 );
       potential = potential + pot;
     }
   }
