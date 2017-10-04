@@ -66,11 +66,11 @@ int main(){
 
   int k=0;
   double tc2=0;   // position of crossing
-  Vt = 1.4; // Max velocity
+  Vt = 2; // Max velocity
   // Time parameters
   tmin = 0.0;
   tmax = 0.1;
-  dt = 0.02;
+  dt = 0.03;
   t = tmin; // Initial time
 
   // Create the files to store the data
@@ -242,14 +242,21 @@ loop( double dtime , int a ){
     cout << " velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
     cout << " velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
   }
+  
+  double media;
 
   if(a!=0) 
   {
+    media=(pos[a+1]+pos[a])*0.5;
     ggg=part.vx[a];
-    npart.vx[a]=npart.vx[a+1];
-    npart.vx[a+1]=ggg;
-    cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
-    cout << " nova velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
+    part.vx[a]=npart.vx[a+1];
+    part.vx[a+1]=ggg;
+    part.x[a]=media;
+    part.x[a+1]=media;
+    cout << " nova velocidade da particula " << npart.num[a] << " é " << part.vx[a] << endl;
+    cout << " nova velocidade da particula " << npart.num[a+1] << " é " << part.vx[a+1] << endl;
+    cout << " nova posiçao da particula " << npart.num[a] << " é " << part.x[a] << endl;
+    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << part.x[a+1] << endl;
   }
   
   for (int i = 0; i < NPart; ++i)
