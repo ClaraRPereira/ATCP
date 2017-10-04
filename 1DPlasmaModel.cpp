@@ -87,7 +87,7 @@ int main(){
   // Dynamics Iteration
   while ( t < tmax ){
 
-    cout << " TEMPO " << t << endl;
+    cout << " TEMPO DA SIMULAÇÃO " << t << endl;
 
     // Compute energies at current timestep
     energy(t);
@@ -244,69 +244,62 @@ loop( double dtime , int a ){
 double 
 func(){
 
-  vector<double> b3;
-  int b2=0;
-  int b=0;
-  int n=NPart;
-  double dtt=dt;
-  double t_c=0; // t_c2;// Variables for the crossing times, tc1 and tc2
-  vector<double> vec_cross;
-  double cross_size;
-  double min_tc2=0;
-  double c1;
-  int num_col=0;
+  vector<double> col_pos;  // stores positions of colliding particles
+  int cpar1=0;             // position of 1st colliding particle
+  int cpar2=0;             // position of second colliding particle 
+  int n=NPart;             // storing total no. os particles
+  int col=0;               // col=0 if there aren't any collisions. col=1 if there are collisions
+  int j=0;                 // Iterator
 
-  int col=0;
+  double Wp=1;             // Plasma freq.
+  double dtt=dt;           // Time step
+  double t_c=0;            // Variable for the crossing time, tc1 
+  double t_c2;             // Variable for the crossing time, tc2 
+  double min_tc2=0;        // Minimum tc2 (time of first crossing event)
+  double minp;             // Position of particle colliding at min_tc2
+  double store_time=0;     // Stores sum of time steps made so far
+  double temp, temp1;      // Auxiliary 
 
-  double Wp=1;
-  double t_c2;
-  double store_time=0;
-
-  double temp, temp1;
-  cout.precision(17);  
-  int j=0;
+  vector<double> vec_cross;   // Vector stores tc2 values
+  double cross_size;          // size of vector vec_cross (just to avoid warnings and always compare integer values)
+   
   loop(dtt,-1);
 
   LOOP:
   col=0;
   vec_cross.clear();
-  b3.clear();
+  col_pos.clear();
   for (int i = 0; i < n-1; ++i)
   {
-   // for (int j = i+1; j < n; ++j){
     j=i+1;
+    if(npart.x[i]>npart.x[j] && j<n)
+    {
+      col=1; // Houve pelo menos uma colisão
+      cpar1=i;
 
-      if(npart.x[i]>npart.x[j] && j<n)
-      {
-        col=1; // Houve pelo menos uma colisão
-        num_col=num_col+1; // Quero saber quantas colisões houve
-        b=i;
-        
         //a=i;
-        b2=j;
-        
+      cpar2=j;
 
-        cout << " CROSSING  entre posições : " <<  b << " e " << b2 ;
-        t_c= dtt*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+npart.x[b]-npart.x[b2]);
-        cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
 
-        temp=part.x[b]+part.vx[b]*sin(Wp*t_c)-X[b]*(1-cos(Wp*t_c));
-        temp1=part.x[b2]+part.vx[b2]*sin(Wp*t_c)-X[b2]*(1-cos(Wp*t_c));
-        if(part.x[b2]-part.x[b]+temp-temp1 > 0.00005)
-        {
-          t_c2= (t_c)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
+      cout << " CROSSING  entre posições : " <<  cpar1 << " e " << cpar2 ;
+      t_c= dtt*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+npart.x[cpar1]-npart.x[cpar2]);
+      cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
+
+      temp=part.x[cpar1]+part.vx[cpar1]*sin(Wp*t_c)-X[cpar1]*(1-cos(Wp*t_c));
+      temp1=part.x[cpar2]+part.vx[cpar2]*sin(Wp*t_c)-X[cpar2]*(1-cos(Wp*t_c));
+      if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00005)
+      {
+        t_c2= (t_c)*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+temp-temp1);
         //  cout << " o t do sistema é  " << t << " e o tc2 é " << t_c2 << endl;
-        }
-        else t_c2=t_c;
+      }
+      else t_c2=t_c;
         // cout << " t_c" << t_c << endl;
-        if ( t_c2 < dt && t_c2>0 )
-        {
-          b3.push_back(b);
-          vec_cross.push_back(t_c2);
-          cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  <<" e o time step é : " << dt << endl;
-        }
-    //   else if (t_c2 > dt ) cout << " Deu merda aqui                                                   111111111111111111111" << endl;
-     // }
+      if ( t_c2 < dt && t_c2>0 )
+      {
+        col_pos.push_back(cpar1);
+        vec_cross.push_back(t_c2);
+        cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  <<" e o time step é : " << dt << endl;
+      }
     }
   }
 
@@ -316,7 +309,7 @@ func(){
   {
 
     min_tc2=vec_cross[0];
-    c1=0;
+    minp=0;
 
     for (int j = 1; j < cross_size; ++j)
     {
@@ -325,22 +318,18 @@ func(){
       { 
         min_tc2=vec_cross[j];
     //cout << "\n min_tc2 " << min_tc2 << endl;
-        c1=j;
+        minp=j;
       }
     }
 
-    cout << " SELECIONEI A COLISÃO " << npart.num[b3[c1]] << " E " <<  npart.num[b3[c1]+1] << endl;
+    cout << " >>>>>>>>>>> SELECIONEI A COLISÃO " << npart.num[col_pos[minp]] << " E " <<  npart.num[col_pos[minp]+1] << endl;
 
-    cout << " ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
+    cout << " ->>>--------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
     store_time=store_time+min_tc2;
     cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
- /* c2=npart.num[b3[c1]];  
-  npart.num[b3[c1]]=npart.num[b3[c1]+1];
-  npart.num[b3[c1]+1]=c2;*/
-
   //time=t+min_tc2;
-    loop(min_tc2,b3[c1]);
+    loop(min_tc2,col_pos[minp]);
   }
 
 
@@ -360,7 +349,7 @@ func(){
   part.x = npart.x;
   part.vx= npart.vx;
   vec_cross.clear();
-  b3.clear();  
+  col_pos.clear();  
 
  // time + 0.001 > dt 
 //if (col==0) {loop(dt,0); delta =dt; goto LOOP;}
