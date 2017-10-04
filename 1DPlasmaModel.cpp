@@ -67,7 +67,7 @@ int main(){
   
   // Time parameters
   tmin = 0.0;
-  tmax = 0.5;   // Simulation time
+  tmax = 100;   // Simulation time
   dt = 0.01;    // Time step
   t = tmin;     // Initial time
 
@@ -89,14 +89,16 @@ int main(){
 
     //cout << " TEMPO DA SIMULAÇÃO " << t << endl;
 
-    // Compute energies at current timestep
-    energy(t);
+
 
     // Compute positions and velocities at current timestep and determine crossing positions
     func();
 
     if (colision) 
       break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
+
+        // Compute energies at current timestep
+    energy(t);
 
     // Go to the next timestep
     t = t + dt;
@@ -343,27 +345,31 @@ func(){
 
 void energy( double time ){
 
-  double kinetic, potential, pot, etotal;
-  int j=0;
+  double v2, kinetic, potential, pot, etotal;
   double xij, xij2;
-  double v2;
-
+  etotal=0.0;
+  kinetic=0.0;
   for (int i = 0; i < NPart; ++i){
+    
     v2=part.vx[i]*part.vx[i];
     kinetic = kinetic + 0.5*v2;
   }
 
+ // cout << " kinetic " << kinetic << endl;
+
   // Potential Energy of the system
   potential = 0.0;
   for (int i = 0; i< NPart; i++){ 
+
       xij = part.x[i] - pos[i];
-
       xij2 = xij*xij;
-
+  
       pot = -  ( xij2/2 );
+    //   cout << " potential " << pot << endl;
       potential = potential + pot;
   }
 
+ 
   // Total energy of the system
   etotal = kinetic + potential;
 
