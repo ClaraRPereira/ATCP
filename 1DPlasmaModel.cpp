@@ -37,7 +37,7 @@ double E_kin;
 double E_pot;
 double E_tot;
 
-double spacing = 0.2;  //size of box
+double spacing = 0.5;  //size of box
 
 bool colision = false;    // Checks if a colision was found
 bool print    = true;     // Variable to decide if i want to print stuff
@@ -61,15 +61,15 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 100; // Number of particles
+  NPart = 10; // Number of particles
 
   int k=0;
   double tc2;   // position of crossing
-  Vt = 5; // Max velocity
+  Vt = 3; // Max velocity
   // Time parameters
   tmin = 0.0;
-  tmax = 0.5;
-  dt =0.1;
+  tmax = 2;
+  dt =1;
   t = tmin; // Initial time
 
   // Create the files to store the data
@@ -185,7 +185,7 @@ void initial_conditions(){ // Gonna Define the initial Conditions
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
   double r1;     // auxiliary variable to generate a random
   double axis = 0; // Start of x axis
-  double spc  = 0.2; //defining intersheet spacing
+  double spc  = 0.5; //defining intersheet spacing
   
   for (int i = 0 ; i< NPart ; i++ ){
 
@@ -219,7 +219,7 @@ loop( double dtime , int a ){
   //double m = 1; //Let's start by defining all masses as 1   ************ PERIGO porque usavas o m para o for ***********
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
-  double Wp = 0.5;
+  double Wp = 0.2;
 
   vector<double> d;
   vector<double> c;
@@ -275,7 +275,7 @@ func(){
   double time=t+dt; // I wanna know where my time is at
 
   double Wp=0.5;
-
+  double t_c2;
   b3.reserve(NPart);
   vec_cross.reserve(NPart);
 
@@ -296,8 +296,8 @@ func(){
 
 LOOP:
   //col=0;
-  //vec_cross.clear();
-  //b3.clear();
+  vec_cross.clear();
+  b3.clear();
   for (int i = 0; i < n; ++i)
   {
     for (int j = i+1; j < n; ++j)
@@ -309,7 +309,7 @@ LOOP:
         col=1; // Houve pelo menos uma colisão
         num_col=num_col+1; // Quero saber quantas colisões houve
         b=npart.num[i];
-        b3[i]=i;
+        b3.push_back(i);
         a=i;
         b2=npart.num[j];
         a2=j;
@@ -322,15 +322,16 @@ LOOP:
         temp1=part.x[b2]+part.vx[b2]*sin(Wp*t_c)-X[b2]*(1-cos(Wp*t_c));
          if(part.x[b2]-part.x[b]+temp-temp1 > 0.001)
          {
-          t_c= (t_c-t)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
-          cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
+          t_c2= (t_c-t)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
+          //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
          }
+         else t_c2=t_c;
          //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
         // cout << " t_c" << t_c << endl;
-       if (t_c >0)
+       if (t_c >0 && t_c < dt)
        {
-        vec_cross[i]=t_c;
-        cout << "\n CACACAC t_c " << t_c << endl;
+        vec_cross.push_back(t_c);
+        cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
        }
       }
     }
@@ -349,14 +350,17 @@ if(col!=0)
     int i=0;
     if(vec_cross[i]>vec_cross[j] && vec_cross[j]>0) 
     { 
-     min_tc2=vec_cross[j];
-     // cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
-     c1=j;
+    min_tc2=vec_cross[j];
+    cout << "\n min_tc2 " << min_tc2 << endl;
+    c1=j;
     }
   }
+  
+  cout << " SELECIONEI A COLISÃO " << c1 << " E " <<  c1+1 << endl;
 
+  cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
   store_time=store_time+min_tc2;
-  //cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
+  cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
   c2=npart.num[b3[c1]];  
   npart.num[b3[c1]]=npart.num[b3[c1]+1];
@@ -377,10 +381,10 @@ cout <<" estou a chegar aqui                         222222222222222222222222222
     part.vx[i]= npart.vx[i];
   } 
 
-if(time<t+dt)
+if(time- (t+dt)>0.1 )
 {
   loop(dt-store_time,0);
-  //col=0;
+  col=0;
   goto LOOP;
 }
 
