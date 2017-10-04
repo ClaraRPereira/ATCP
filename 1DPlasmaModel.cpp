@@ -62,7 +62,7 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 100;   // Number of particles
+  NPart = 1000;   // Number of particles
   Vt = 5;        // Max absolute velocity
   
   // Time parameters
@@ -78,16 +78,16 @@ int main(){
   initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
   // Print, to the terminal, positions, velocities & momenta.
-  if(print){
+  /*if(print){
 
     PrintParStatsAll();
     PrintParOrder();
-  }
+  }*/
 
   // Dynamics Iteration
   while ( t < tmax ){
 
-    cout << " TEMPO DA SIMULAÇÃO " << t << endl;
+    //cout << " TEMPO DA SIMULAÇÃO " << t << endl;
 
     // Compute energies at current timestep
     energy(t);
@@ -156,14 +156,14 @@ void record_trajectories( ){
 
   for (int i=0 ; i<n ; i++ ){
 
-    fprintf( data, "%f %f %f %f\n", t, part.x[i], part.vx[i], part.mx[i] ); // Escrever os valores para o ficheiro "DATA"
+    fprintf( data, "%f %f %f %f \n", t, part.x[i], part.vx[i], part.mx[i] ); // Escrever os valores para o ficheiro "DATA"
   }
 }
 
 // Write the energies of the system in the file " ENERGY ".
 void record_energies(){
 
-  fprintf( energies, "%f, %f, %f, %f\n",t, E_kin, E_tot, E_pot);
+  fprintf( energies, "%f %f %f %f \n",t, E_kin, E_pot, E_tot);
 }
 
 void initial_conditions(){// Gonna Define the initial Conditions
@@ -277,10 +277,10 @@ func(){
       col=1;                                       // Houve pelo menos uma colisão
       cpar1=i;
       cpar2=j;
-      cout << " CROSSING  entre posições : " <<  cpar1 << " e " << cpar2 ;
+      //cout << " CROSSING  entre posições : " <<  cpar1 << " e " << cpar2 ;
 
       t_c= dtt*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+npart.x[cpar1]-npart.x[cpar2]);
-      cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
+      //cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
 
       temp=part.x[cpar1]+part.vx[cpar1]*sin(Wp*t_c)-X[cpar1]*(1-cos(Wp*t_c));
       temp1=part.x[cpar2]+part.vx[cpar2]*sin(Wp*t_c)-X[cpar2]*(1-cos(Wp*t_c));
@@ -294,7 +294,7 @@ func(){
       //if ( t_c2 < dt && t_c2>0 ){
       col_pos.push_back(cpar1);
       vec_cross.push_back(t_c2);
-      cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  << endl;
+      //cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  << endl;
       //}
     }
   }
@@ -315,11 +315,11 @@ func(){
       }
     }
 
-    cout << " >>>>>>>>>>> SELECIONEI A COLISÃO " << npart.num[col_pos[minp]] << " E " <<  npart.num[col_pos[minp]+1] << endl;
-    cout << " ->>>--------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
+    //cout << " >>>>>>>>>>> SELECIONEI A COLISÃO " << npart.num[col_pos[minp]] << " E " <<  npart.num[col_pos[minp]+1] << endl;
+    //cout << " ->>>--------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
     
     store_time=store_time+min_tc2;
-    cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
+    //cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
     loop(min_tc2,col_pos[minp]);
   }
@@ -331,7 +331,7 @@ func(){
 
   if ( dt - store_time < 0.00001)
   {
-    cout << " dt - store_time " << dt- store_time<< endl;
+    //cout << " dt - store_time " << dt- store_time<< endl;
     loop(dt-store_time,-1);
     dtt=dt-store_time;
     goto LOOP;
@@ -344,26 +344,24 @@ func(){
 void energy( double time ){
 
   double kinetic, potential, pot, etotal;
-
+  int j=0;
   double xij, xij2;
+  double v2;
 
   for (int i = 0; i < NPart; ++i){
-
-    kinetic = 0.5*part.dir_product(part.mx,part.vx)[i];
+    v2=part.vx[i]*part.vx[i];
+    kinetic = kinetic + 0.5*v2;
   }
 
   // Potential Energy of the system
   potential = 0.0;
-  for (int i = 0; i< NPart; i++){
-
-    for (int j= i + 1; j< NPart; j++){
-      xij = part.x[i] - part.x[j];
+  for (int i = 0; i< NPart; i++){ 
+      xij = part.x[i] - pos[i];
 
       xij2 = xij*xij;
 
       pot = -  ( xij2/2 );
       potential = potential + pot;
-    }
   }
 
   // Total energy of the system
