@@ -61,11 +61,11 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 10; // Number of particles
+  NPart = 100; // Number of particles
 
   int k=0;
   double tc2;   // position of crossing
-  Vt = 4; // Max velocity
+  Vt = 3; // Max velocity
   // Time parameters
   tmin = 0.0;
   tmax = 2;
@@ -107,7 +107,7 @@ int main(){
     t = t + dt;
 
       // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
-    if (print == 1){
+    if (print){
 
       record_trajectories( );
       record_energies( );
@@ -115,10 +115,7 @@ int main(){
 
   }
 
-  if(print){
-
-    PrintParOrder();
-  }
+ 
 
   // Close trajectories file
   fclose( data );
@@ -153,7 +150,7 @@ PrintParOrder(){
   cout << " >>> Ordenação das Partículas : " ;
   for (int i = 0; i < NPart; ++i){
 
-    cout << part.num[i] << " ,";
+    cout << part.num[i] << " | ";
   }
 
   cout << endl;
@@ -323,7 +320,7 @@ LOOP:
          if(part.x[b2]-part.x[b]+temp-temp1 > 0.05)
          {
           t_c2= (t_c)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
-          cout << "\n o t do sistema é  " << t << " e o tc2 é " << t_c2 << endl;
+          cout << " o t do sistema é  " << t << " e o tc2 é " << t_c2 << endl;
          }
          else t_c2=t_c;
          //cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c << endl;
@@ -331,14 +328,14 @@ LOOP:
        if ( t_c2 < dt)
        {
         vec_cross.push_back(t_c2);
-        cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << t_c2  <<" e o time step é : " << dt << endl;
+        cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  <<" e o time step é : " << dt << endl;
        }
-       else if (t_c2 > dt ) cout << " Deu merda aqui" << endl;
+       else if (t_c2 > dt ) cout << " Deu merda aqui                                                   111111111111111111111" << endl;
       }
     }
   }
 
-cout <<" estou a chegar aqui                             1111111111111111111111111111" << endl;
+//cout <<" estou a chegar aqui                             1111111111111111111111111111" << endl;
 
 if(col!=0)
 {
@@ -352,14 +349,14 @@ if(col!=0)
     if(vec_cross[i]>vec_cross[j] && vec_cross[j]>0) 
     { 
     min_tc2=vec_cross[j];
-    cout << "\n min_tc2 " << min_tc2 << endl;
+    //cout << "\n min_tc2 " << min_tc2 << endl;
     c1=j;
     }
   }
   
   cout << " SELECIONEI A COLISÃO " << npart.num[b3[c1]] << " E " <<  npart.num[b3[c1]+1] << endl;
 
-  cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
+  cout << " ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
   store_time=store_time+min_tc2;
   cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
@@ -377,7 +374,7 @@ if(col!=0)
 
   part.num=npart.num;
   PrintParOrder();
-cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222 vou incrementar " << time << endl;
+//cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222 vou incrementar " << time << endl;
 
   for (int i = 0;  i < NPart; ++i)
   {
@@ -396,7 +393,7 @@ if(time- (t+dt)>0.1 )
   goto LOOP;
 }
 
-cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
+//cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
 
  
  return t_c;
