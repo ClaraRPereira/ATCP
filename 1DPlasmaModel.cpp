@@ -65,7 +65,7 @@ int main(){
 
   int k=0;
   double tc2;   // position of crossing
-  Vt = 0.9; // Max velocity
+  Vt = 1; // Max velocity
   // Time parameters
   tmin = 0.0;
   tmax = 0.3;
