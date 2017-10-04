@@ -208,54 +208,37 @@ loop( double dtime , int a ){
   double Wp = 1;
   double aux;    // auxiliary variable to store old values of stuff
 
-  double mean;   // AUXILIARY CHEATING VALUES TO CALCULATE MEAN VALUE BETWEEN PARTICLES POSITONS WHEN THEY COLLIDE
-/*
-  if(a!=0) 
-  {
-    media=(pos[a+1]+pos[a])*0.5;
-    aux=part.vx[a];
-    part.vx[a]=part.vx[a+1];
-    part.vx[a+1]=aux;
-    part.x[a]=media;
-    part.x[a+1]=media;
-    cout << " nova velocidade da particula " << npart.num[a] << " é " << part.vx[a] << endl;
-    cout << " nova velocidade da particula " << npart.num[a+1] << " é " << part.vx[a+1] << endl;
-    cout << " nova posiçao da particula " << npart.num[a] << " é " << part.x[a] << endl;
-    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << part.x[a+1] << endl;
-  } */
+  double mean;   // AUXILIARY CHEATING VALUE TO CALCULATE MEAN VALUE BETWEEN PARTICLES POSITIONS WHEN THEY COLLIDE
+                 // se a conservação de energia for má. em vez de usarmos o valor médio iteramos um tc3 até as posições de igualarem
   
-  for (int i = 0; i < NPart; ++i)
-  {
-   // X[i]=npart.x[i]-part.x[i];
+  for (int i = 0; i < NPart; ++i){   // Loop to compute displacements
+
     X[i]=part.x[i]-pos[i];
   }
-
   
-
-    // IF THERE AREN'T ANY CROSSINGS JUST NORMALLY CALCULATING TIME EVOLUTION OF "HARMONIC OSCILLATORS"
-
+  // CALCULATING TIME EVOLUTION OF THE "HARMONIC OSCILLATOR" Equation. Solution to differential equation for each particle
   for (int i = 0; i < NPart; ++i){
 
-    npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);
+    npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);    // npart are the new values for the particles. part are the old values (previous time step).
     npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtime)-X[i]*(1-cos(Wp*dtime));
-    if (npart.x[i]<0) npart.x[i]=0;
+    if (npart.x[i]<0) npart.x[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
   }   
 
-  if(a!=-1) 
-  {
-    mean=(npart.x[a+1]+npart.x[a])*0.5;
+  if(a!=-1) // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
+  {         // When a!=0, a assumes the value of the position of the colliding particle. 
+    mean=(npart.x[a+1]+npart.x[a])*0.5;                                         
     aux=npart.vx[a];
-    npart.vx[a]=npart.vx[a+1];
+    npart.vx[a]=npart.vx[a+1];          //  Velocities are switched with its neighbour (elastic collision)
     npart.vx[a+1]=aux;
-    npart.x[a]=mean;
+    npart.x[a]=mean;                    // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
     npart.x[a+1]=mean;
+    /*
     cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
-    cout << " nova velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
-    cout << " nova posiçao da particula " << npart.num[a] << " é " << npart.x[a] << endl;
-    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << npart.x[a+1] << endl;
+    cout << " nova velocidade da partícula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
+    cout << " nova posiçao da partícula " << npart.num[a] << " é " << npart.x[a] << endl;
+    cout << " nova posiçao da partícula " << npart.num[a+1] << " é " << npart.x[a+1] << endl;
+    */
   }
-
-
 }    
 
 double 
@@ -266,8 +249,9 @@ func(){
   int b=0;
   int n=NPart;
   double dtt=dt;
-  double t_c=0; //, t_c2;// Variables for the crossing times, tc1 and tc2
+  double t_c=0; // t_c2;// Variables for the crossing times, tc1 and tc2
   vector<double> vec_cross;
+  double cross_size;
   double min_tc2=0;
   double c1;
   int num_col=0;
@@ -276,16 +260,8 @@ func(){
 
   double Wp=1;
   double t_c2;
-  /*b3.reserve(NPart);
-  vec_cross.reserve(NPart);
-
-  npart.x.reserve(n);
-  npart.vx.reserve(n);*/
   double store_time=0;
 
-
-  //vector<double> d;
-  //vector<double> c;
   double temp, temp1;
   cout.precision(17);  
 
@@ -334,13 +310,8 @@ func(){
       }
     }
   }
-/*
-for (int i = 0; i < n; ++i)
-{
-  cout << " velocidades  1  ----  " << i << " " << npart.vx[i] << endl;
-}*/
 
-//cout <<" estou a chegar aqui                             1111111111111111111111111111" << endl;
+  cross_size=vec_cross.size();
 
   if(col!=0)
   {
@@ -348,7 +319,7 @@ for (int i = 0; i < n; ++i)
     min_tc2=vec_cross[0];
     c1=0;
 
-    for (int j = 1; j < vec_cross.size(); ++j)
+    for (int j = 1; j < cross_size; ++j)
     {
 
       if(vec_cross[j]<min_tc2 ) 
