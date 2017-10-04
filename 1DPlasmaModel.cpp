@@ -307,10 +307,10 @@ LOOP:
       {
         col=1; // Houve pelo menos uma colisão
         num_col=num_col+1; // Quero saber quantas colisões houve
-        b=npart.num[i];
+        b=i;
         b3.push_back(b);
         a=i;
-        b2=npart.num[j];
+        b2=j;
         a2=j;
 
         cout << " CROSSING  entre posições : " <<  b << " e " << b2 ;
