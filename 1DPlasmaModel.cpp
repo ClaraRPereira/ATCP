@@ -37,7 +37,7 @@ double E_kin;
 double E_pot;
 double E_tot;
 
-double spacing = 0.5;  //size of box
+double L=20;  //size of box
 
 bool colision = false;    // Checks if a colision was found
 bool print    = true;     // Variable to decide if i want to print stuff
@@ -65,11 +65,11 @@ int main(){
 
   int k=0;
   double tc2;   // position of crossing
-  Vt = 3; // Max velocity
+  Vt = 0.9; // Max velocity
   // Time parameters
   tmin = 0.0;
-  tmax = 2;
-  dt =1;
+  tmax = 0.3;
+  dt = 0.1;
   t = tmin; // Initial time
 
   // Create the files to store the data
@@ -182,7 +182,7 @@ void initial_conditions(){ // Gonna Define the initial Conditions
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
   double r1;     // auxiliary variable to generate a random
   double axis = 0; // Start of x axis
-  double spc  = 0.5; //defining intersheet spacing
+  double spc  = L/NPart; //defining intersheet spacing
   
   for (int i = 0 ; i< NPart ; i++ ){
 
@@ -212,11 +212,13 @@ void
 loop( double dtime , int a ){
 
   //int a=0; // Store position of crossing particle
-  double dtt=dtime+t;
+  //double dtt=dtime+t;
+  double dtt=dtime;
+  double spacing=L/NPart;
   //double m = 1; //Let's start by defining all masses as 1   ************ PERIGO porque usavas o m para o for ***********
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
-  double Wp = 0.2;
+  double Wp = 1;
 
   vector<double> d;
   vector<double> c;
@@ -271,7 +273,7 @@ func(){
   int col=0;
   double time=t+dt; // I wanna know where my time is at
 
-  double Wp=0.3;
+  double Wp=1;
   double t_c2;
   b3.reserve(NPart);
   vec_cross.reserve(NPart);
@@ -317,7 +319,7 @@ LOOP:
 
         temp=part.x[b]+part.vx[b]*sin(Wp*t_c)-X[b]*(1-cos(Wp*t_c));
         temp1=part.x[b2]+part.vx[b2]*sin(Wp*t_c)-X[b2]*(1-cos(Wp*t_c));
-         if(part.x[b2]-part.x[b]+temp-temp1 > 0.5)
+         if(part.x[b2]-part.x[b]+temp-temp1 > 0.0005)
          {
           t_c2= (t_c)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
           cout << " o t do sistema é  " << t << " e o tc2 é " << t_c2 << endl;
