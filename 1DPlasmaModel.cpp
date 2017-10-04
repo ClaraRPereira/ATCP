@@ -208,7 +208,7 @@ loop( double dtime , int a ){
   double Wp = 1;
   double aux;    // auxiliary variable to store old values of stuff
 
-  double media;
+  double mean;   // AUXILIARY CHEATING VALUES TO CALCULATE MEAN VALUE BETWEEN PARTICLES POSITONS WHEN THEY COLLIDE
 /*
   if(a!=0) 
   {
@@ -243,12 +243,12 @@ loop( double dtime , int a ){
 
   if(a!=-1) 
   {
-    media=(pos[a+1]+pos[a])*0.5;
+    mean=(npart.x[a+1]+npart.x[a])*0.5;
     aux=npart.vx[a];
     npart.vx[a]=npart.vx[a+1];
     npart.vx[a+1]=aux;
-    npart.x[a]=media;
-    npart.x[a+1]=media;
+    npart.x[a]=mean;
+    npart.x[a+1]=mean;
     cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
     cout << " nova velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
     cout << " nova posiçao da particula " << npart.num[a] << " é " << npart.x[a] << endl;
