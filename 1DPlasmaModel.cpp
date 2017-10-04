@@ -212,28 +212,44 @@ loop( double dtime , int a ){
 
   double mean;   // AUXILIARY CHEATING VALUE TO CALCULATE MEAN VALUE BETWEEN PARTICLES POSITIONS WHEN THEY COLLIDE
                  // se a conservação de energia for má. em vez de usarmos o valor médio iteramos um tc3 até as posições de igualarem
+  //double temp,temp1;
+  //double t_c;
   
   for (int i = 0; i < NPart; ++i){   // Loop to compute displacements
 
     X[i]=part.x[i]-pos[i];
   }
-  
+ /*
+if(a!=-1){               ISTO ERA CODIGO DE MIM A TENTAR MERDAS PARA OPTIMIZAR A ENERGIA
+
+  while (temp-temp1 > 0.00005*L/NPart  )
+  {
+    temp=part.x[a]+part.vx[a]*sin(Wp*dtime)-X[a]*(1-cos(Wp*dtime));
+    temp1=part.x[a+1]+part.vx[a+1]*sin(Wp*dtime)-X[a+1]*(1-cos(Wp*dtime));
+      
+    t_c= (dtime)*(part.x[a+1]-part.x[a])/(part.x[a+1]-part.x[a]+temp-temp1);
+    dtime=t_c;
+  }
+}
+*/
   // CALCULATING TIME EVOLUTION OF THE "HARMONIC OSCILLATOR" Equation. Solution to differential equation for each particle
   for (int i = 0; i < NPart; ++i){
 
     npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);    // npart are the new values for the particles. part are the old values (previous time step).
     npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtime)-X[i]*(1-cos(Wp*dtime));
     if (npart.x[i]<0) npart.x[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
+    if (npart.x[i]>L) npart.x[i]=L;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
   }   
 
   if(a!=-1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
              // When a!=0, a assumes the value of the position of the colliding particle. 
-    mean=(npart.x[a+1]+npart.x[a])*0.5;                                         
+    mean=(npart.x[a+1]+npart.x[a])*0.5;                                        
     aux=npart.vx[a];
     npart.vx[a]=npart.vx[a+1];             //  Velocities are switched with its neighbour (elastic collision)
     npart.vx[a+1]=aux;
     npart.x[a]=mean;                       // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
     npart.x[a+1]=mean;
+ 
     /*
     cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
     cout << " nova velocidade da partícula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
@@ -241,6 +257,8 @@ loop( double dtime , int a ){
     cout << " nova posiçao da partícula " << npart.num[a+1] << " é " << npart.x[a+1] << endl;
     */
   }
+
+
 }    
 
 double 
