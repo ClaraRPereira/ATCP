@@ -320,7 +320,7 @@ LOOP:
 
         temp=part.x[b]+part.vx[b]*sin(Wp*t_c)-X[b]*(1-cos(Wp*t_c));
         temp1=part.x[b2]+part.vx[b2]*sin(Wp*t_c)-X[b2]*(1-cos(Wp*t_c));
-         if(part.x[b2]-part.x[b]+temp-temp1 > 0.01)
+         if(part.x[b2]-part.x[b]+temp-temp1 > 0.05)
          {
           t_c2= (t_c)*(part.x[b2]-part.x[b])/(part.x[b2]-part.x[b]+temp-temp1);
           cout << "\n o t do sistema é  " << t << " e o tc2 é " << t_c2 << endl;
