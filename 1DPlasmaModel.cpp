@@ -65,7 +65,7 @@ int main(){
 
   int k=0;
   double tc2;   // position of crossing
-  Vt = 1; // Max velocity
+  Vt = 2; // Max velocity
   // Time parameters
   tmin = 0.0;
   tmax = 0.3;
@@ -368,7 +368,7 @@ if(col!=0)
  
  
 
-  time=t+store_time;
+  time=store_time;
 
   //time=t+min_tc2;
   loop(time,b3[c1]);
@@ -386,7 +386,7 @@ if(col!=0)
     part.vx[i]= npart.vx[i];
   } 
 
-if(time- (t+dt)>0.1 )
+if(time- (dt)>0.1 )
 {
   
   if(store_time>dt) loop(dt,0);
