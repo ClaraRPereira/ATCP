@@ -66,7 +66,7 @@ int main(){
 
   int k=0;
   double tc2=0;   // position of crossing
-  Vt = 3; // Max velocity
+  Vt = 1.4; // Max velocity
   // Time parameters
   tmin = 0.0;
   tmax = 0.1;
@@ -106,6 +106,7 @@ int main(){
 
     // Go to the next timestep
     t = t + dt;
+    PrintParStatsAll();
 
       // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
     if (print){
@@ -117,7 +118,7 @@ int main(){
   }
 
 
-
+ 
   // Close trajectories file
   fclose( data );
   fclose( energies );
@@ -182,6 +183,7 @@ void initial_conditions(){ // Gonna Define the initial Conditions
   //double sigma=0.5, n0=0.7; //Valores aleatórios para a carga por unidade de área, sigma, e para a density of neutralizing background charges 
   //double Wp= 4*M_PI*sigma*sigma*n0/m; //Plasma Frequency
   double r1;     // auxiliary variable to generate a random
+  double r2;
   double axis = 0; // Start of x axis
   double spc  = L/NPart; //defining intersheet spacing
   
@@ -198,8 +200,9 @@ void initial_conditions(){ // Gonna Define the initial Conditions
 
     // random velocities according to uniform distribution
     r1 = (double)rand() / (double)RAND_MAX;  // generating rando between 0 and 1
-    if(i%2==0) vel.push_back(Vt*r1);
-    else if (i%2!=0) vel.push_back(-Vt*r1);
+    r2 = (double)rand() / (double)RAND_MAX;  
+    if(r2>=0.5) vel.push_back(Vt*r1);
+    else if (r2<0.5) vel.push_back(-Vt*r1);
      //cout << " r1: " << Vt*r1 << endl;
     X.push_back(0);
     // Defining the masses
@@ -243,8 +246,8 @@ loop( double dtime , int a ){
   if(a!=0) 
   {
     ggg=part.vx[a];
-    npart.vx[a]=-npart.vx[a+1];
-    npart.vx[a+1]=-ggg;
+    npart.vx[a]=npart.vx[a+1];
+    npart.vx[a+1]=ggg;
     cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
     cout << " nova velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
   }
@@ -419,7 +422,7 @@ if ( dt - store_time > 0.01 )
 } */
 //else if ( dt - store_time < 0.01)  cout << " tou a bazar daqui                                      1111111111111111" << endl;
 //cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
-  cout << " TEMPO " << t;
+  cout << " TEMPO " << t << endl;
 
   return min_tc2;
 }
