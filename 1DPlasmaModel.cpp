@@ -61,7 +61,7 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 10; // Number of particles
+  NPart = 20; // Number of particles
 
   int k=0;
   double tc2;   // position of crossing
@@ -274,7 +274,7 @@ func(){
   int col=0;
   double time=t+dt; // I wanna know where my time is at
 
-  double Wp=0.5;
+  double Wp=0.3;
   double t_c2;
   b3.reserve(NPart);
   vec_cross.reserve(NPart);
