@@ -357,7 +357,7 @@ if(col!=0)
     }
   }
   
-  cout << " SELECIONEI A COLISÃO " << b3[c1] << " E " <<  b3[c1]+1 << endl;
+  cout << " SELECIONEI A COLISÃO " << npart.num[b3[c1]] << " E " <<  npart.num[b3[c1]+1] << endl;
 
   cout << "\n ----------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
   store_time=store_time+min_tc2;
@@ -366,13 +366,17 @@ if(col!=0)
   c2=npart.num[b3[c1]];  
   npart.num[b3[c1]]=npart.num[b3[c1]+1];
   npart.num[b3[c1]+1]=c2;
-  
+ 
+ 
+
   time=t+store_time;
-  
+
   //time=t+min_tc2;
   loop(time,b3[c1]);
 }
 
+  part.num=npart.num;
+  PrintParOrder();
 cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222 vou incrementar " << time << endl;
 
   for (int i = 0;  i < NPart; ++i)
@@ -394,7 +398,7 @@ if(time- (t+dt)>0.1 )
 
 cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
 
- part.num=npart.num;
+ 
  return t_c;
 }
 
