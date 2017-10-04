@@ -66,11 +66,11 @@ int main(){
 
   int k=0;
   double tc2=0;   // position of crossing
-  Vt = 1; // Max velocity
+  Vt = 2; // Max velocity
   // Time parameters
   tmin = 0.0;
-  tmax = 0.05;
-  dt = 0.01;
+  tmax = 0.1;
+  dt = 0.03;
   t = tmin; // Initial time
 
   // Create the files to store the data
@@ -420,14 +420,14 @@ for (int i = 0; i < n; ++i)
 
  //t=t+min_tc2;
 
-if ( dt - store_time > 0.001)
+if ( dt - store_time < 0.00001)
 {
   cout << " dt - store_time " << dt- store_time<< endl;
    loop(dt-store_time,0);
    dtt=dt-store_time;
    goto LOOP;
 } 
-//else if ( dt - store_time < 0.001)  cout << " tou a bazar daqui                                      1111111111111111" << endl;
+else if ( dt - store_time < 0.001)  cout << " tou a bazar daqui                                      1111111111111111" << endl;
 //cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
   cout << " TEMPO " << t << endl;
 
