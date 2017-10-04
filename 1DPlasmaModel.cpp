@@ -63,11 +63,11 @@ int main(){
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
   NPart = 100;   // Number of particles
-  Vt = 2;        // Max absolute velocity
+  Vt = 5;        // Max absolute velocity
   
   // Time parameters
   tmin = 0.0;
-  tmax = 0.1;   // Simulation time
+  tmax = 0.5;   // Simulation time
   dt = 0.01;    // Time step
   t = tmin;     // Initial time
 
@@ -264,20 +264,19 @@ func(){
 
   double temp, temp1;
   cout.precision(17);  
-
+  int j=0;
   loop(dtt,-1);
 
   LOOP:
   col=0;
   vec_cross.clear();
   b3.clear();
-  for (int i = 0; i < n; ++i)
+  for (int i = 0; i < n-1; ++i)
   {
-    for (int j = i+1; j < n; ++j)
-    {
+   // for (int j = i+1; j < n; ++j){
+    j=i+1;
 
-
-      if(npart.x[i]>npart.x[j]  && j==i+1)
+      if(npart.x[i]>npart.x[j] && j<n)
       {
         col=1; // Houve pelo menos uma colisão
         num_col=num_col+1; // Quero saber quantas colisões houve
@@ -307,7 +306,7 @@ func(){
           cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  <<" e o time step é : " << dt << endl;
         }
     //   else if (t_c2 > dt ) cout << " Deu merda aqui                                                   111111111111111111111" << endl;
-      }
+     // }
     }
   }
 
