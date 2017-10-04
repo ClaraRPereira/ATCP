@@ -166,7 +166,7 @@ void record_energies(){
   fprintf( energies, "%f, %f, %f, %f\n",t, E_kin, E_tot, E_pot);
 }
 
-void initial_conditions(){ // Gonna Define the initial Conditions
+void initial_conditions(){// Gonna Define the initial Conditions
 
   vector<double> Px; 
 
@@ -176,9 +176,9 @@ void initial_conditions(){ // Gonna Define the initial Conditions
   double axis = 0;        // Start of x axis
   double spc  = L/NPart;  // Defining intersheet spacing
   
-  for (int i = 0 ; i< NPart ; i++ ){  // For loop to set the different initial vectors
+  for (int i = 0 ; i< NPart ; i++ ){         // For loop to set the different initial vectors
 
-    part.num.push_back(i);  // Defining Particle ordering
+    part.num.push_back(i);                   // Defining Particle ordering
     npart.num.push_back(i);
     
     //Defining the x positions  
@@ -192,13 +192,13 @@ void initial_conditions(){ // Gonna Define the initial Conditions
     if(r2>=0.5) vel.push_back(Vt*r1);
     else if (r2<0.5) vel.push_back(-Vt*r1);  // Randomly distributing velocities between -Vt and Vt
 
-    X.push_back(0);           // Initializing displacement vector at zero
+    X.push_back(0);                          // Initializing displacement vector at zero
 
     // Defining the masses
     mass.push_back(m);
   }
 
-  part.set_values(pos,vel,mass);        // Setting the values for the current particles and the new particles. 
+  part.set_values(pos,vel,mass);             // Setting the values for the current particles and the new particles. 
   npart.set_values(pos,vel,mass);
 }
 
@@ -224,13 +224,13 @@ loop( double dtime , int a ){
     if (npart.x[i]<0) npart.x[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
   }   
 
-  if(a!=-1) // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
-  {         // When a!=0, a assumes the value of the position of the colliding particle. 
+  if(a!=-1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
+             // When a!=0, a assumes the value of the position of the colliding particle. 
     mean=(npart.x[a+1]+npart.x[a])*0.5;                                         
     aux=npart.vx[a];
-    npart.vx[a]=npart.vx[a+1];          //  Velocities are switched with its neighbour (elastic collision)
+    npart.vx[a]=npart.vx[a+1];             //  Velocities are switched with its neighbour (elastic collision)
     npart.vx[a+1]=aux;
-    npart.x[a]=mean;                    // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
+    npart.x[a]=mean;                       // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
     npart.x[a+1]=mean;
     /*
     cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
@@ -262,99 +262,72 @@ func(){
 
   vector<double> vec_cross;   // Vector stores tc2 values
   double cross_size;          // size of vector vec_cross (just to avoid warnings and always compare integer values)
-   
+
   loop(dtt,-1);
 
   LOOP:
   col=0;
   vec_cross.clear();
   col_pos.clear();
-  for (int i = 0; i < n-1; ++i)
-  {
+  for (int i = 0; i < n-1; ++i){
+
     j=i+1;
-    if(npart.x[i]>npart.x[j] && j<n)
-    {
-      col=1; // Houve pelo menos uma colisão
+    if(npart.x[i]>npart.x[j] && j<n){
+
+      col=1;                                       // Houve pelo menos uma colisão
       cpar1=i;
-
-        //a=i;
       cpar2=j;
-
-
       cout << " CROSSING  entre posições : " <<  cpar1 << " e " << cpar2 ;
+
       t_c= dtt*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+npart.x[cpar1]-npart.x[cpar2]);
       cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
 
       temp=part.x[cpar1]+part.vx[cpar1]*sin(Wp*t_c)-X[cpar1]*(1-cos(Wp*t_c));
       temp1=part.x[cpar2]+part.vx[cpar2]*sin(Wp*t_c)-X[cpar2]*(1-cos(Wp*t_c));
-      if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00005)
-      {
+      
+      if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00005){
+
         t_c2= (t_c)*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+temp-temp1);
-        //  cout << " o t do sistema é  " << t << " e o tc2 é " << t_c2 << endl;
       }
       else t_c2=t_c;
-        // cout << " t_c" << t_c << endl;
-      if ( t_c2 < dt && t_c2>0 )
-      {
-        col_pos.push_back(cpar1);
-        vec_cross.push_back(t_c2);
-        cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  <<" e o time step é : " << dt << endl;
-      }
+
+      //if ( t_c2 < dt && t_c2>0 ){
+      col_pos.push_back(cpar1);
+      vec_cross.push_back(t_c2);
+      cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  << endl;
+      //}
     }
   }
 
   cross_size=vec_cross.size();
 
-  if(col!=0)
-  {
+  if(col!=0){
 
     min_tc2=vec_cross[0];
     minp=0;
 
-    for (int j = 1; j < cross_size; ++j)
-    {
+    for (int j = 1; j < cross_size; ++j){
 
-      if(vec_cross[j]<min_tc2 ) 
-      { 
+      if(vec_cross[j]<min_tc2 ){ 
+
         min_tc2=vec_cross[j];
-    //cout << "\n min_tc2 " << min_tc2 << endl;
         minp=j;
       }
     }
 
     cout << " >>>>>>>>>>> SELECIONEI A COLISÃO " << npart.num[col_pos[minp]] << " E " <<  npart.num[col_pos[minp]+1] << endl;
-
     cout << " ->>>--------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
+    
     store_time=store_time+min_tc2;
     cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
-  //time=t+min_tc2;
     loop(min_tc2,col_pos[minp]);
   }
 
-
-
-//cout <<" estou a chegar aqui                         2222222222222222222222222222222222222222 vou incrementar " << time << endl;
-
-
-  //pos = part.x;
-  //vel = part.vx;
-  //part.num=npart.num;
- /* for (int i = 0; i < n; ++i)
-{
-  cout << " velocidades  2---- "<< i << " " << npart.vx[i] << endl;
-}*/
-
-
   part.x = npart.x;
   part.vx= npart.vx;
-  vec_cross.clear();
-  col_pos.clear();  
 
- // time + 0.001 > dt 
-//if (col==0) {loop(dt,0); delta =dt; goto LOOP;}
-
- //t=t+min_tc2;
+  //t=t+min_tc2;
 
   if ( dt - store_time < 0.00001)
   {
