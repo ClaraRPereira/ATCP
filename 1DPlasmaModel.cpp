@@ -106,7 +106,7 @@ int main(){
 
     // Go to the next timestep
     t = t + dt;
-    PrintParStatsAll();
+    //PrintParStatsAll();
 
       // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
     if (print){
@@ -237,11 +237,11 @@ loop( double dtime , int a ){
       part.vx[i]= npart.vx[i];
     } 
   }*/
-  if(a!=0)
+  /*if(a!=0)
   {
     cout << " velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
     cout << " velocidade da particula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
-  }
+  }*/
   
   double media;
 
@@ -253,10 +253,10 @@ loop( double dtime , int a ){
     part.vx[a+1]=ggg;
     part.x[a]=media;
     part.x[a+1]=media;
-    cout << " nova velocidade da particula " << npart.num[a] << " é " << part.vx[a] << endl;
+    /*cout << " nova velocidade da particula " << npart.num[a] << " é " << part.vx[a] << endl;
     cout << " nova velocidade da particula " << npart.num[a+1] << " é " << part.vx[a+1] << endl;
     cout << " nova posiçao da particula " << npart.num[a] << " é " << part.x[a] << endl;
-    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << part.x[a+1] << endl;
+    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << part.x[a+1] << endl;*/
   }
   
   for (int i = 0; i < NPart; ++i)
