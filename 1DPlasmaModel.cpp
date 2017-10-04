@@ -253,10 +253,10 @@ loop( double dtime , int a ){
     part.vx[a+1]=ggg;
     part.x[a]=media;
     part.x[a+1]=media;
-    /*cout << " nova velocidade da particula " << npart.num[a] << " é " << part.vx[a] << endl;
+    cout << " nova velocidade da particula " << npart.num[a] << " é " << part.vx[a] << endl;
     cout << " nova velocidade da particula " << npart.num[a+1] << " é " << part.vx[a+1] << endl;
     cout << " nova posiçao da particula " << npart.num[a] << " é " << part.x[a] << endl;
-    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << part.x[a+1] << endl;*/
+    cout << " nova posiçao da particula " << npart.num[a+1] << " é " << part.x[a+1] << endl;
   }
   
   for (int i = 0; i < NPart; ++i)
@@ -418,8 +418,8 @@ for (int i = 0; i < n; ++i)
  // time + 0.001 > dt 
 //if (col==0) {loop(dt,0); delta =dt; goto LOOP;}
 
- // t=t+min_tc2;
-
+ t=t+min_tc2;
+/*
 if ( dt - store_time > 0.01 )
 {
   cout << " dt - store_time " << dt- store_time<< endl;
@@ -427,7 +427,7 @@ if ( dt - store_time > 0.01 )
    dtt=dt-store_time;
    goto LOOP;
 } 
-else if ( dt - store_time < 0.01)  cout << " tou a bazar daqui                                      1111111111111111" << endl;
+else if ( dt - store_time < 0.01)  cout << " tou a bazar daqui                                      1111111111111111" << endl;*/
 //cout <<" estou a chegar aqui e o meu tempo é " << time << " e do sistema " << t << endl;
   cout << " TEMPO " << t << endl;
 
