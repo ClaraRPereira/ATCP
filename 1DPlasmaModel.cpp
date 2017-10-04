@@ -283,7 +283,7 @@ func(){
   vector<double> vec_cross;   // Vector stores tc2 values
   double cross_size;          // size of vector vec_cross (just to avoid warnings and always compare integer values)
 
-  loop(dtt,-1);
+  loop(dtt,-1);            // First loop, calculates new npart positions and velocities for my time step dt
 
   LOOP:
   col=0;
@@ -299,20 +299,20 @@ func(){
       cpar2=j;
       //cout << " CROSSING  entre posições : " <<  cpar1 << " e " << cpar2 ;
 
-      t_c= dtt*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+npart.x[cpar1]-npart.x[cpar2]);
+      t_c= dtt*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+npart.x[cpar1]-npart.x[cpar2]);    // Calculating tc1
       //cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
 
-      temp=part.x[cpar1]+part.vx[cpar1]*sin(Wp*t_c)-X[cpar1]*(1-cos(Wp*t_c));
-      temp1=part.x[cpar2]+part.vx[cpar2]*sin(Wp*t_c)-X[cpar2]*(1-cos(Wp*t_c));
+      temp=part.x[cpar1]+part.vx[cpar1]*sin(Wp*t_c)-X[cpar1]*(1-cos(Wp*t_c));                        // temporary values for tc2
+      temp1=part.x[cpar2]+part.vx[cpar2]*sin(Wp*t_c)-X[cpar2]*(1-cos(Wp*t_c));  
       
-      if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00005){
+      if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00005){                                         // Guarantee code doesn't explode
 
-        t_c2= (t_c)*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+temp-temp1);
+        t_c2= (t_c)*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+temp-temp1);              // Calculating tc2
       }
       else t_c2=t_c;
 
       //if ( t_c2 < dt && t_c2>0 ){
-      col_pos.push_back(cpar1);
+      col_pos.push_back(cpar1);                  // Storing tc2 values and positions of colliding particles
       vec_cross.push_back(t_c2);
       //cout << " - SEGUNDA APROXIMAÇÃO AO TEMPO DE CROSSING -- TC2 = " << t_c2  << endl;
       //}
@@ -321,7 +321,7 @@ func(){
 
   cross_size=vec_cross.size();
 
-  if(col!=0){
+  if(col!=0){            /// Algorithm to get the smallest value out of vec_cross
 
     min_tc2=vec_cross[0];
     minp=0;
@@ -331,25 +331,25 @@ func(){
       if(vec_cross[j]<min_tc2 ){ 
 
         min_tc2=vec_cross[j];
-        minp=j;
+        minp=j;                      // Also get the position of the collision corresponding to tc2_min
       }
     }
 
     //cout << " >>>>>>>>>>> SELECIONEI A COLISÃO " << npart.num[col_pos[minp]] << " E " <<  npart.num[col_pos[minp]+1] << endl;
     //cout << " ->>>--------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
     
-    store_time=store_time+min_tc2;
+    store_time=store_time+min_tc2;                                 // storing time to know where i am at
     //cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
-    loop(min_tc2,col_pos[minp]);
+    loop(min_tc2,col_pos[minp]);                                     // Loop to advance particles positons up to tc2
   }
 
-  part.x = npart.x;
+  part.x = npart.x;                                                 // storing new advanced values in part.
   part.vx= npart.vx;
 
   //t=t+min_tc2;
 
-  if ( dt - store_time < 0.00001)
+  if ( dt - store_time < 0.00001)                          // If i haven't reached t+ dt yet i iterate the remaining time and look for collisions once more
   {
     //cout << " dt - store_time " << dt- store_time<< endl;
     loop(dt-store_time,-1);
