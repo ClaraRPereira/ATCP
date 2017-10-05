@@ -62,7 +62,7 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 1000;   // Number of particles
+  NPart = 100;   // Number of particles
   Vt = 5;        // Max absolute velocity
   
   // Time parameters
