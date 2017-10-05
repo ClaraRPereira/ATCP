@@ -63,12 +63,12 @@ int main(){
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
   NPart = 100;   // Number of particles
-  Vt = 5;        // Max absolute velocity
+  Vt = 3;        // Max absolute velocity
   
   // Time parameters
   tmin = 0.0;
-  tmax = 100;   // Simulation time
-  dt = 0.01;    // Time step
+  tmax = 10;   // Simulation time
+  dt = 0.001;    // Time step
   t = tmin;     // Initial time
 
   // Create the files to store the data
@@ -78,16 +78,16 @@ int main(){
   initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
   // Print, to the terminal, positions, velocities & momenta.
-  /*if(print){
+  if(print){
 
     PrintParStatsAll();
     PrintParOrder();
-  }*/
+  }
 
   // Dynamics Iteration
   while ( t < tmax ){
 
-    //cout << " TEMPO DA SIMULAÇÃO " << t << endl;
+    cout << " TEMPO DA SIMULAÇÃO " << t << endl;
 
 
 
@@ -237,8 +237,8 @@ if(a!=-1){               ISTO ERA CODIGO DE MIM A TENTAR MERDAS PARA OPTIMIZAR A
 
     npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);    // npart are the new values for the particles. part are the old values (previous time step).
     npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtime)-X[i]*(1-cos(Wp*dtime));
-    if (npart.x[i]<0) npart.x[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
-    if (npart.x[i]>L) npart.x[i]=L;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
+    //if (npart.x[i]<0) npart.x[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
+    //if (npart.x[i]>L) npart.x[i]=L;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
   }   
 
   if(a!=-1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
@@ -250,12 +250,12 @@ if(a!=-1){               ISTO ERA CODIGO DE MIM A TENTAR MERDAS PARA OPTIMIZAR A
     npart.x[a]=mean;                       // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
     npart.x[a+1]=mean;
  
-    /*
+    
     cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
     cout << " nova velocidade da partícula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
     cout << " nova posiçao da partícula " << npart.num[a] << " é " << npart.x[a] << endl;
     cout << " nova posiçao da partícula " << npart.num[a+1] << " é " << npart.x[a+1] << endl;
-    */
+    
   }
 
 
@@ -292,12 +292,12 @@ func(){
   for (int i = 0; i < n-1; ++i){
 
     j=i+1;
-    if(npart.x[i]>npart.x[j] && j<n){
+    if(npart.x[i]>=npart.x[j] ){
 
       col=1;                                       // Houve pelo menos uma colisão
       cpar1=i;
       cpar2=j;
-      //cout << " CROSSING  entre posições : " <<  cpar1 << " e " << cpar2 ;
+      cout << " CROSSING  entre posições : " <<  cpar1 << " e " << cpar2 ;
 
       t_c= dtt*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+npart.x[cpar1]-npart.x[cpar2]);    // Calculating tc1
       //cout << " \n ----- 1a APROXIMAÇÃO AO TEMPO DE CROSSING --- TC1 = " << t_c << endl; 
@@ -336,27 +336,29 @@ func(){
     }
 
     //cout << " >>>>>>>>>>> SELECIONEI A COLISÃO " << npart.num[col_pos[minp]] << " E " <<  npart.num[col_pos[minp]+1] << endl;
-    //cout << " ->>>--------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
+    cout << " ->>>--------- TEMPO DE CROSSING FINAL --------- TC2 = " << min_tc2 << endl;
     
     store_time=store_time+min_tc2;                                 // storing time to know where i am at
-    //cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
+    cout << " TEEEMPO INCREMENTADO  " << store_time << endl;
 
     loop(min_tc2,col_pos[minp]);                                     // Loop to advance particles positons up to tc2
   }
 
   part.x = npart.x;                                                 // storing new advanced values in part.
   part.vx= npart.vx;
-
+   
+   cout << " TEMPO ACTUAL DA SIMULAÇÂO " << t + store_time << endl; 
   //t=t+min_tc2;
 
-  if ( dt - store_time < 0.00001)                          // If i haven't reached t+ dt yet i iterate the remaining time and look for collisions once more
+  if ( dt - store_time < 0.0000)                          // If i haven't reached t+ dt yet i iterate the remaining time and look for collisions once more
   {
     //cout << " dt - store_time " << dt- store_time<< endl;
     loop(dt-store_time,-1);
     dtt=dt-store_time;
     goto LOOP;
   } 
-
+  
+  cout << " TEMPO ACTUAL DA SIMULAÇÂO " << t + store_time << endl;
 
   return min_tc2;
 }
