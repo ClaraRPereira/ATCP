@@ -28,7 +28,7 @@ vector<double> pos;       // Positions
 vector<double> vel;       // Velocities
 vector <double> X;        // Displacements
 
-FILE *data, *energies;           // Create files to store the particle data and the energies
+FILE *data, *energies, *fin_vel;           // Create files to store the particle data and the energies
 
 double Vt;                       // Max velocity for uniform distribution   
 
@@ -46,6 +46,7 @@ bool print    = true;     // Variable to decide if i want to print stuff
 void initial_conditions();     // Inicia as partículas com as condições iniciais
 void record_trajectories();    // Writes trajectories to a file
 void record_energies();        // Writes energies to a file
+void final_velocities();
 
 void PrintParStatsAll();      // Print position, velocity, and momentum of every particle
 void PrintParStats(int i);
@@ -62,18 +63,19 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 100;   // Number of particles
-  Vt = 3;        // Max absolute velocity
+  NPart = 1000;   // Number of particles
+  Vt = 5;        // Max absolute velocity
   
   // Time parameters
   tmin = 0.0;
   tmax = 10;   // Simulation time
-  dt = 0.001;    // Time step
+  dt = 0.01;    // Time step
   t = tmin;     // Initial time
 
   // Create the files to store the data
   data = fopen( "DATA", "w" );
   energies = fopen( "ENERGY", "w" );
+  fin_vel = fopen( "FINAL_VEL", "w");
 
   initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
@@ -112,9 +114,12 @@ int main(){
     }
   }
 
+  final_velocities();
+
   // Close trajectory and energy files
   fclose( data );
   fclose( energies );
+  fclose( fin_vel );
 
   return 0;
 }
@@ -166,6 +171,13 @@ void record_trajectories( ){
 void record_energies(){
 
   fprintf( energies, "%f %f %f %f \n",t, E_kin, E_pot, E_tot);
+}
+
+void final_velocities(){
+  for (int i=0 ; i<NPart ; i++ ){
+
+    fprintf( fin_vel , "%f \n", part.vx[i]);
+  }
 }
 
 void initial_conditions(){// Gonna Define the initial Conditions
@@ -249,7 +261,7 @@ if(a!=-1){               ISTO ERA CODIGO DE MIM A TENTAR MERDAS PARA OPTIMIZAR A
     npart.vx[a+1]=aux;
     npart.x[a]=mean;                       // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
     npart.x[a+1]=mean;
- 
+
     
     cout << " nova velocidade da particula " << npart.num[a] << " é " << npart.vx[a] << endl;
     cout << " nova velocidade da partícula " << npart.num[a+1] << " é " << npart.vx[a+1] << endl;
@@ -305,11 +317,11 @@ func(){
       temp=part.x[cpar1]+part.vx[cpar1]*sin(Wp*t_c)-X[cpar1]*(1-cos(Wp*t_c));                        // temporary values for tc2
       temp1=part.x[cpar2]+part.vx[cpar2]*sin(Wp*t_c)-X[cpar2]*(1-cos(Wp*t_c));  
       
-      if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00005){                                         // Guarantee code doesn't explode
+      if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00001){                                         // Guarantee code doesn't explode
 
         t_c2= (t_c)*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+temp-temp1);              // Calculating tc2
-      }
-      else t_c2=t_c;
+    }
+    else t_c2=t_c;
 
       //if ( t_c2 < dt && t_c2>0 ){
       col_pos.push_back(cpar1);                  // Storing tc2 values and positions of colliding particles
@@ -346,8 +358,8 @@ func(){
 
   part.x = npart.x;                                                 // storing new advanced values in part.
   part.vx= npart.vx;
-   
-   cout << " TEMPO ACTUAL DA SIMULAÇÂO " << t + store_time << endl; 
+
+  cout << " TEMPO ACTUAL DA SIMULAÇÂO " << t + store_time << endl; 
   //t=t+min_tc2;
 
   if ( dt - store_time < 0.0000)                          // If i haven't reached t+ dt yet i iterate the remaining time and look for collisions once more
@@ -370,7 +382,7 @@ void energy( double time ){
   etotal=0.0;
   kinetic=0.0;
   for (int i = 0; i < NPart; ++i){
-    
+
     v2=part.vx[i]*part.vx[i];
     kinetic = kinetic + 0.5*v2;
   }
@@ -381,15 +393,15 @@ void energy( double time ){
   potential = 0.0;
   for (int i = 0; i< NPart; i++){ 
 
-      xij = part.x[i] - pos[i];
-      xij2 = xij*xij;
-  
-      pot = -  ( xij2/2 );
+    xij = part.x[i] - pos[i];
+    xij2 = xij*xij;
+
+    pot = +  ( xij2/2 );
     //   cout << " potential " << pot << endl;
-      potential = potential + pot;
+    potential = potential + pot;
   }
 
- 
+
   // Total energy of the system
   etotal = kinetic + potential;
 
