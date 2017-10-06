@@ -38,6 +38,7 @@ plot(time_E,E_Kin,time_E,E_Pot,time_E,E_Tot)
 hold on
 legend({'E_{Kinetic}','E_{Potential}','E_{Tot}= E_{Kin} + E_{Pot}'},'Location','southwest','FontSize',10)
 xlabel('time');
+%axis([ 0 1000  0 140]);
 ylabel('Energy');
 grid on
 hold off
