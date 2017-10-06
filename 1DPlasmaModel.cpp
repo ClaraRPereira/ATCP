@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <ctime>
 #include <algorithm>
 
@@ -28,7 +29,16 @@ vector<double> pos;       // Positions
 vector<double> vel;       // Velocities
 vector <double> X;        // Displacements
 
-FILE *data, *energies, *fin_vel, *in_vel, *vel1;           // Create files to store the particle data and the energies
+//FILE *data, *energies, *fin_vel, *in_vel, *vel1;           // Create files to store the particle data and the energies
+
+ofstream data;
+ofstream energies;
+ofstream energies_normalized;
+ofstream fin_vel;
+ofstream ini_vel;
+ofstream vel1;
+
+
 
 double Vt;                       // Max velocity for uniform distribution   
 
@@ -37,6 +47,9 @@ double Vt;                       // Max velocity for uniform distribution
 double E_kin;			        
 double E_pot;
 double E_tot;
+double E_kin_0;			        
+double E_pot_0;
+double E_tot_0;
 
 double dE=0.8;
 
@@ -48,6 +61,7 @@ bool print    = false;     // Variable to decide if i want to print stuff
 void initial_conditions();     // Inicia as partículas com as condições iniciais
 void record_trajectories();    // Writes trajectories to a file
 void record_energies();        // Writes energies to a file
+void record_energies_normalized();
 void write_velocities(int i);
 
 void PrintParStatsAll();      // Print position, velocity, and momentum of every particle
@@ -60,6 +74,10 @@ void energy( double time );
 double func();
 
 int main(){
+
+
+
+
 
   srand((int) time(0));  // Seeding the random distribution 
 
@@ -76,11 +94,20 @@ int main(){
   t = tmin;     // Initial time
 
   // Create the files to store the data
-  data = fopen( "DATA", "w" );
-  energies = fopen( "ENERGY", "w" );
-  fin_vel = fopen( "FINAL_VEL", "w");
-  in_vel = fopen( "IN_VEL", "w");
-  vel1 = fopen( "VEL", "w");
+  
+  
+data.open ("data.dat");
+energies.open ("energy.dat");
+energies_normalized.open ("energy_normalized.dat");
+fin_vel.open ("final_velocity.dat");
+ini_vel.open ("initial_velocity.dat");
+vel1.open ("vel1.dat");
+
+  //data = fopen( "DATA", "w" );
+  //energies = fopen( "ENERGY", "w" );
+  //fin_vel = fopen( "FINAL_VEL", "w");
+  //in_vel = fopen( "IN_VEL", "w");
+  //vel1 = fopen( "VEL", "w");
 
   initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
@@ -105,9 +132,13 @@ int main(){
       break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
 
         // Compute energies at current timestep
+  
     energy(t);
-
-
+	
+	cout <<"energia_total_inicial " <<E_tot_0 << endl;
+	cout <<"energia_pot_inicial " <<E_pot_0 << endl;
+	cout <<"energia_cin_inicial " <<E_kin_0 << endl;
+	
     if (t == tmin) {
 
       write_velocities(1);
@@ -126,7 +157,9 @@ int main(){
    
 
     if (t >= tmax) write_velocities(2);
+    
     record_energies( );
+    record_energies_normalized( );
 
     // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
     if (print){
@@ -137,12 +170,13 @@ int main(){
   }
 
 
-  // Close trajectory and energy files
-  fclose( data );
-  fclose( energies );
-  fclose( fin_vel );
-  fclose( in_vel );
-  fclose( vel1 );
+	data.close();
+	energies.close();
+	energies_normalized.close();
+	fin_vel.close();
+	ini_vel.close();
+	vel1.close();
+
 
   return 0;
 }
@@ -184,25 +218,36 @@ void record_trajectories( ){
 
   int n=NPart;
 
-  for (int i=0 ; i<n ; i++ ){
-
-    fprintf( data, "%f %f %f %f \n", t, part.x[i], part.vx[i], part.mx[i] ); // Escrever os valores para o ficheiro "DATA"
-  }
+for (int i=0 ; i<n ; i++ )
+{
+	data << t <<"\t"<< part.x[i] <<"\t"<< part.vx[i] << endl; 
+}	
+  data << "\n" ;
 }
 
 // Write the energies of the system in the file " ENERGY ".
 void record_energies(){
-
-  fprintf( energies, "%f %f %f %f \n",t, E_kin, E_pot, E_tot);
+ 
+  energies << t <<"\t"<< E_kin <<"\t"<< E_pot <<"\t"<< E_tot << endl;
+  
 }
+
+void record_energies_normalized(){
+ 
+  energies_normalized << t <<"\t"<< (E_kin-E_kin_0)/E_kin_0 <<"\t"<< (E_pot-E_pot_0)/E_pot_0 <<"\t"<< (E_tot-E_tot_0)/E_tot_0 << endl;
+  
+}
+
+
 
 void write_velocities(int j){
 
   for (int i=0 ; i<NPart ; i++ ){
 
-   if(j==2) fprintf( fin_vel , "%f \n", part.vx[i]);
-   else if(j==1) fprintf( in_vel , "%f \n", part.vx[i]);
-   else if(j==3)  fprintf( vel1 , "%f \n", part.vx[i]);
+   if(j==2) fin_vel <<  part.vx[i] << endl;
+   else if(j==1) ini_vel <<  part.vx[i] << endl;
+   else if(j==3)  vel1 <<   part.vx[i] << endl;
+   
  }
 
 }
@@ -213,7 +258,6 @@ void initial_conditions(){// Gonna Define the initial Conditions
 
   double m = 1;           // Let's start by defining all masses as 1
   double r1;              // auxiliary variable to generate a random
-  //double r2;              // auxiliary variable for another random
   double axis = 0;        // Start of x axis
   double spc  = L/NPart;  // Defining intersheet spacing
   
@@ -229,7 +273,6 @@ void initial_conditions(){// Gonna Define the initial Conditions
 
     // random velocities according to uniform distribution
     r1 = (double)rand() / (double)RAND_MAX;  // generating rando between 0 and 1
-    //r2 = (double)rand() / (double)RAND_MAX;  
     vel.push_back(Vt-2*Vt*r1);  // Randomly distributing velocities between -Vt and Vt
 
     X.push_back(0);                          // Initializing displacement vector at zero
@@ -431,8 +474,10 @@ void energy( double time ){
 
   double v2, kinetic, potential, pot, etotal;
   double xij, xij2;
+  
   etotal=0.0;
   kinetic=0.0;
+  
   for (int i = 0; i < NPart; ++i){
 
     v2=part.vx[i]*part.vx[i];
@@ -463,4 +508,10 @@ void energy( double time ){
   E_kin=kinetic;
   E_pot=potential;
   E_tot=etotal;
+  
+  if(t==tmin){
+	  E_kin_0=kinetic;
+  E_pot_0=potential;
+  E_tot_0=etotal;
+	  }
 }
