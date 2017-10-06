@@ -28,7 +28,7 @@ vector<double> pos;       // Positions
 vector<double> vel;       // Velocities
 vector <double> X;        // Displacements
 
-FILE *data, *energies, *fin_vel, *in_vel;           // Create files to store the particle data and the energies
+FILE *data, *energies, *fin_vel, *in_vel, *vel1;           // Create files to store the particle data and the energies
 
 double Vt;                       // Max velocity for uniform distribution   
 
@@ -40,10 +40,10 @@ double E_tot;
 
 double dE=0.8;
 
-double L=50;  //size of box
+double L;  //size of box
 
 bool colision = false;    // Checks if a colision was found
-bool print    = true;     // Variable to decide if i want to print stuff
+bool print    = false;     // Variable to decide if i want to print stuff
 
 void initial_conditions();     // Inicia as partículas com as condições iniciais
 void record_trajectories();    // Writes trajectories to a file
@@ -66,11 +66,12 @@ int main(){
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
   NPart = 1000;   // Number of particles
+  L=0.05*NPart;
   Vt = 1;        // Max absolute velocity
   
   // Time parameters
   tmin = 0.0;
-  tmax = 150;   // Simulation time
+  tmax = 100;   // Simulation time
   dt = 0.001;    // Time step
   t = tmin;     // Initial time
 
@@ -79,6 +80,7 @@ int main(){
   energies = fopen( "ENERGY", "w" );
   fin_vel = fopen( "FINAL_VEL", "w");
   in_vel = fopen( "IN_VEL", "w");
+  vel1 = fopen( "VEL", "w");
 
   initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
@@ -88,12 +90,12 @@ int main(){
     PrintParStatsAll();
     PrintParOrder();
   }*/
-
+  double op=0;
   // Dynamics Iteration
   while ( t < tmax ){
 
-    //cout << " TEMPO DA SIMULAÇÃO " << t << endl;
-
+    cout << " TEMPO DA SIMULAÇÃO " << t << endl;
+    op = op + dt;
 
 
     // Compute positions and velocities at current timestep and determine crossing positions
@@ -112,16 +114,25 @@ int main(){
     }
     // Go to the next timestep
     t = t + dt;
+    
+    if(op>=1) {
+
+      write_velocities(3);
+      op=0;
+    }
+    cout << "k " << t << "  ss  " << op << endl;
     //PrintParStatsAll();
     
+   
 
     if (t >= tmax) write_velocities(2);
+    record_energies( );
 
     // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
     if (print){
 
       record_trajectories( );
-      record_energies( );
+      
     }
   }
 
@@ -131,6 +142,7 @@ int main(){
   fclose( energies );
   fclose( fin_vel );
   fclose( in_vel );
+  fclose( vel1 );
 
   return 0;
 }
@@ -190,7 +202,9 @@ void write_velocities(int j){
 
    if(j==2) fprintf( fin_vel , "%f \n", part.vx[i]);
    else if(j==1) fprintf( in_vel , "%f \n", part.vx[i]);
+   else if(j==3)  fprintf( vel1 , "%f \n", part.vx[i]);
  }
+
 }
 
 void initial_conditions(){// Gonna Define the initial Conditions
@@ -285,7 +299,7 @@ if(a!=-1){               ISTO ERA CODIGO DE MIM A TENTAR MERDAS PARA OPTIMIZAR A
     npart.vx[a]=npart.vx[a]+dE*(vel_max-vel_min);
   }
   else if ( npart.vx[a]==npart.vx[a+1])
-  {       */
+  {   */    
     aux=npart.vx[a];
     npart.vx[a]=npart.vx[a+1];             //  Velocities are switched with its neighbour (elastic collision)
     npart.vx[a+1]=aux;
@@ -397,7 +411,7 @@ func(){
   part.x = npart.x;                                                 // storing new advanced values in part.
   part.vx= npart.vx;
 
-  //cout << " TEMPO ACTUAL DA SIMULAÇÂO " << t + store_time << endl; 
+  cout << " TEMPO ACTUAL DA SIMULAÇÂO " << t + store_time << endl; 
   //t=t+min_tc2;
 
   if ( dt - store_time < 0.0000)                          // If i haven't reached t+ dt yet i iterate the remaining time and look for collisions once more
