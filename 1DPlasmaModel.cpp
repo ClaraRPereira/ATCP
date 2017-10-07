@@ -29,15 +29,14 @@ vector<double> pos;       // Positions
 vector<double> vel;       // Velocities
 vector <double> X;        // Displacements
 
-//FILE *data, *energies, *fin_vel, *in_vel, *vel1;           // Create files to store the particle data and the energies
-
+// Create files to store the particle data and the energies
 ofstream data;
 ofstream energies;
 ofstream energies_normalized;
 ofstream fin_vel;
 ofstream ini_vel;
 ofstream vel1;
-
+ofstream estatisticas_vel;
 
 
 double Vt;                       // Max velocity for uniform distribution   
@@ -71,6 +70,8 @@ void PrintParOrder();
 void loop(double dtime , int k);  // Methods  for the main algorithm
 void energy( double time );
 
+void velocity_statistics(double time );
+
 double func();
 
 int main(){
@@ -89,7 +90,7 @@ int main(){
   
   // Time parameters
   tmin = 0.0;
-  tmax = 100;   // Simulation time
+  tmax = 2000;   // Simulation time
   dt = 0.001;    // Time step
   t = tmin;     // Initial time
 
@@ -102,21 +103,12 @@ energies_normalized.open ("energy_normalized.dat");
 fin_vel.open ("final_velocity.dat");
 ini_vel.open ("initial_velocity.dat");
 vel1.open ("vel1.dat");
+estatisticas_vel.open("stats.dat");
 
-  //data = fopen( "DATA", "w" );
-  //energies = fopen( "ENERGY", "w" );
-  //fin_vel = fopen( "FINAL_VEL", "w");
-  //in_vel = fopen( "IN_VEL", "w");
-  //vel1 = fopen( "VEL", "w");
+ // Call function to initialize the particles' variables (position, velocity and momenta)
+   initial_conditions();
 
-  initial_conditions(); // Call function to initialize the particles' variables (position, velocity and momenta)
 
-  // Print, to the terminal, positions, velocities & momenta.
-  /*if(print){
-
-    PrintParStatsAll();
-    PrintParOrder();
-  }*/
   double op=0;
   // Dynamics Iteration
   while ( t < tmax ){
@@ -134,6 +126,7 @@ vel1.open ("vel1.dat");
         // Compute energies at current timestep
   
     energy(t);
+	velocity_statistics(t);
 	
 	cout <<"energia_total_inicial " <<E_tot_0 << endl;
 	cout <<"energia_pot_inicial " <<E_pot_0 << endl;
@@ -477,26 +470,19 @@ void energy( double time ){
   
   etotal=0.0;
   kinetic=0.0;
-  
+   potential = 0.0;
   for (int i = 0; i < NPart; ++i){
-
+// kinectic energy of the system 
     v2=part.vx[i]*part.vx[i];
     kinetic = kinetic + 0.5*v2;
-  }
-
- // cout << " kinetic " << kinetic << endl;
-
-  // Potential Energy of the system
-  potential = 0.0;
-  for (int i = 0; i< NPart; i++){ 
-
+    
+  // Potential Energy of the system  
     xij = part.x[i] - pos[i];
     xij2 = xij*xij;
-
     pot = +  ( xij2/2 );
-    //   cout << " potential " << pot << endl;
     potential = potential + pot;
   }
+
 
 
   // Total energy of the system
@@ -509,9 +495,41 @@ void energy( double time ){
   E_pot=potential;
   E_tot=etotal;
   
+  // na primeira iteração grava os valores das energias de modo a comparar a sua conservação 
   if(t==tmin){
 	  E_kin_0=kinetic;
   E_pot_0=potential;
   E_tot_0=etotal;
 	  }
+}
+
+
+void velocity_statistics(double time){
+
+double moment1=0.0, moment2=0.0, moment3=0.0, moment4=0.0; 	
+	
+double mean; 
+double desvpad; 
+double skew;	
+double kurt;	
+
+ for (int i = 0; i< NPart; i++){ 
+	 moment1 += part.vx[i];
+	 moment2 += pow(part.vx[i],2);
+	 moment3 += pow(part.vx[i],3);
+	 moment4 += pow(part.vx[i],4);
+	 }
+
+moment1 = moment1/NPart; 
+moment2 = moment2/NPart; 
+moment3 = moment3/NPart; 
+moment4 = moment4/NPart; 
+
+mean = moment1;
+desvpad = sqrt(moment2 - moment1*moment1); 
+skew = moment3/pow(desvpad,3);
+kurt = moment4/pow(desvpad,4)-3;
+	
+	estatisticas_vel << time << "\t" << mean <<"\t" << desvpad <<"\t" << skew <<"\t" << kurt << endl;
+	
 }
