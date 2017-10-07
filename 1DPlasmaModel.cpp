@@ -44,11 +44,12 @@ double Vt;                       // Max velocity for uniform distribution
 
 
 double dE=0.8;
+int Inelastic=0;         // If Inelastic==0 --> fazemos colisões elásticas . Else if Inelastic == 1 fazemos colisões elásticas.
 
 double L;  //size of box
 
 bool colision = false;    // Checks if a colision was found
-bool print    = true;     // Variable to decide if i want to print stuff
+bool print    = false;     // Variable to decide if i want to print stuff
 
 void initial_conditions();     // Inicia as partículas com as condições iniciais
 void record_trajectories();    // Writes trajectories to a file
@@ -69,10 +70,6 @@ double func();
 
 int main(){
 
-
-
-
-
   srand((int) time(0));  // Seeding the random distribution 
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
@@ -89,23 +86,23 @@ int main(){
 
 
 //variáveis para imprimir as energias
-double E_kin , E_pot , E_tot;
-double E_kin_0 , E_pot_0 , E_tot_0;			        
+  double E_kin , E_pot , E_tot;
+  double E_kin_0 , E_pot_0 , E_tot_0;			        
 
   // Create the files to store the data
   
   
-data.open ("raw_data.dat");
-energies.open ("energy.dat");
-energies_normalized.open ("energy_normalized.dat");
-fin_vel.open ("final_velocity.dat");
-ini_vel.open ("initial_velocity.dat");
-vel1.open ("vel1.dat");
-estatisticas_vel.open("stats.dat");
-landau.open("landaudamping.dat");
+  data.open ("raw_data.dat");
+  energies.open ("energy.dat");
+  energies_normalized.open ("energy_normalized.dat");
+  fin_vel.open ("final_velocity.dat");
+  ini_vel.open ("initial_velocity.dat");
+  vel1.open ("vel1.dat");
+  estatisticas_vel.open("stats.dat");
+  landau.open("landaudamping.dat");
 
  // Call function to initialize the particles' variables (position, velocity and momenta)
-   initial_conditions();
+  initial_conditions();
 
 
   double op=0;
@@ -119,54 +116,45 @@ landau.open("landaudamping.dat");
     // Compute positions and velocities at current timestep and determine crossing positions
     func();
 
-    if (colision) 
-      break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
 
-        // Compute energies at current timestep
-  
-    
-	energy(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0);
-    record_energies(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
-    record_energies_normalized(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );    
+    // Go to the next timestep
+    t = t + dt;
 
-    
 	//velocity_statistics(t);
-	
+
     if (t == tmin) {
 
       write_velocities(1);
-    }
-    // Go to the next timestep
-    t = t + dt;
-    
+    } 
     if(op>=1) {
 
       write_velocities(3);
       op=0;
     }
-    //cout << "k " << t << "  ss  " << op << endl;
-    //PrintParStatsAll();
     
-   
+    //PrintParStatsAll();
 
     if (t >= tmax) write_velocities(2);
     
     
-    // Write the positions of the particles in the file "DATA" if print_trajectory ==1.
+    // Write the positions of the particles in the file "DATA" if print=true.
     if (print){
 
+      energy(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0);
+      record_energies(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
+      record_energies_normalized(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
       record_trajectories( );
       
     }
   }
 
 
-	data.close();
-	energies.close();
-	energies_normalized.close();
-	fin_vel.close();
-	ini_vel.close();
-	vel1.close();
+  data.close();
+  energies.close();
+  energies_normalized.close();
+  fin_vel.close();
+  ini_vel.close();
+  vel1.close();
 
   return 0;
 }
@@ -206,23 +194,23 @@ PrintParOrder(){              // Prints TO THE TERMINAL particle ordering
 // Write the positions, velocities and momenta of the particles in the file " DATA ".
 void record_trajectories( ){
 
-for (int i=0 ; i<NPart ; i++ )
-{
+  for (int i=0 ; i<NPart ; i++ )
+  {
 	// time ---- position ---- displacement ---- velocity ---- particle id  
-	data << t <<"\t"<< part.x[i] <<"\t"<< X[i] <<"\t"<< part.vx[i] <<"\t"<< part.num[i] <<endl; 
-}	
+   data << t <<"\t"<< part.x[i] <<"\t"<< X[i] <<"\t"<< part.vx[i] <<"\t"<< part.num[i] <<endl; 
+ }	
 }
 
 // Write the energies of the system in the file " ENERGY ".
 void record_energies( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0){
- 
+
   energies << time <<"\t"<< E_kin <<"\t"<< E_pot <<"\t"<< E_tot << endl;
   
 }
 
 
 void record_energies_normalized( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0){
- 
+
   energies_normalized << time <<"\t"<< (E_kin-E_kin_0)/E_kin_0 <<"\t"<< (E_pot-E_pot_0)/E_pot_0 <<"\t"<< (E_tot-E_tot_0)/E_tot_0 << endl;
   
 }
@@ -249,6 +237,13 @@ void initial_conditions(){// Gonna Define the initial Conditions
   double r1;              // auxiliary variable to generate a random
   double axis = 0;        // Start of x axis
   double spc  = L/NPart;  // Defining intersheet spacing
+  grid.reserve(NPart);
+  pos.reserve(NPart);
+  vel.reserve(NPart);
+  X.reserve(NPart);
+  mass.reserve(NPart);
+  part.num.reserve(NPart);
+  npart.num.reserve(NPart);
   
   for (int i = 0 ; i< NPart ; i++ ){         // For loop to set the different initial vectors
 
@@ -279,7 +274,8 @@ loop( double dtime , int a ){
 
   double Wp = 1;
   double aux;    // auxiliary variable to store old values of stuff
-
+  double vel_max;   // Store relative values of velocities in case we are considering inelastic collisions
+  double vel_min;
   double mean;   // AUXILIARY CHEATING VALUE TO CALCULATE MEAN VALUE BETWEEN PARTICLES POSITIONS WHEN THEY COLLIDE
                  // se a conservação de energia for má. em vez de usarmos o valor médio iteramos um tc3 até as posições de igualarem
   
@@ -291,18 +287,18 @@ loop( double dtime , int a ){
 
   // CALCULATING TIME EVOLUTION OF THE "HARMONIC OSCILLATOR" Equation. Solution to differential equation for each particle
 
+  double cosx=cos(Wp*dtime);
+  double sinx=sin(Wp*dtime);
+  // CALCULATING TIME EVOLUTION OF THE "HARMONIC OSCILLATOR" Equation. Solution to differential equation for each particle
   for (int i = 0; i < NPart; ++i){
 
-    npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);    // npart are the new values for the particles. part are the old values (previous time step).
-    npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtime)-X[i]*(1-cos(Wp*dtime));
+    npart.vx[i]=part.vx[i]*cosx-Wp*X[i]*sinx;    // npart are the new values for the particles. part are the old values (previous time step).
+    npart.x[i]=part.x[i]+part.vx[i]*sinx-X[i]*(1-cosx);
     //if (npart.x[i]<=0) npart.vx[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
-    if (npart.x[i]>=L || npart.x[i]<=0) npart.vx[i]=-npart.vx[i];        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
+    //if (npart.x[i]>=L || npart.x[i]<=0) npart.vx[i]=-npart.vx[i];        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
   }   
 
-  //double vel_max;
-  //double vel_min;
-
-  if(a!=-1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
+  if(a!=-1 && Inelastic==0){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
              // When a!=0, a assumes the value of the position of the colliding particle. 
 
     aux=npart.vx[a];
@@ -310,19 +306,47 @@ loop( double dtime , int a ){
     npart.vx[a+1]=aux;
 
 
+    mean=(npart.x[a+1]+npart.x[a])*0.5;                                        
+    npart.x[a]=mean;                       // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
+    npart.x[a+1]=mean;
+
+  }
+  if(a!=-1 && Inelastic==1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
+             // When a!=0, a assumes the value of the position of the colliding particle. 
+
+    if(npart.vx[a]>npart.vx[a+1]){
+
+     vel_max=npart.vx[a]; 
+     vel_min=npart.vx[a+1];
+     npart.vx[a]=npart.vx[a]-dE*(vel_max-vel_min);
+     npart.vx[a+1]=npart.vx[a+1]+dE*(vel_max-vel_min);
+   }
+   else if(npart.vx[a]<npart.vx[a+1]){ 
+
+    vel_max=npart.vx[a+1]; 
+    vel_min=npart.vx[a];
+    npart.vx[a+1]=npart.vx[a+1]-dE*(vel_max-vel_min);
+    npart.vx[a]=npart.vx[a]+dE*(vel_max-vel_min);
+  }
+  else if ( npart.vx[a]==npart.vx[a+1]){  
+
+    aux=npart.vx[a];
+    npart.vx[a]=npart.vx[a+1];             //  Velocities are switched with its neighbour (elastic collision)
+    npart.vx[a+1]=aux;
+  }
+
   mean=(npart.x[a+1]+npart.x[a])*0.5;                                        
     npart.x[a]=mean;                       // X positions of colliding particles are the exact spot where they collide at. (mean position at t=dt)
     npart.x[a+1]=mean;
 
   }
-
-
 }    
 
 double 
 func(){
 
   vector<double> col_pos;  // stores positions of colliding particles
+  col_pos.reserve(NPart);
   int cpar1=0;             // position of 1st colliding particle
   int cpar2=0;             // position of second colliding particle 
   int n=NPart;             // storing total no. os particles
@@ -341,6 +365,7 @@ func(){
 
   vector<double> vec_cross;   // Vector stores tc2 values
   double cross_size;          // size of vector vec_cross (just to avoid warnings and always compare integer values)
+  vec_cross.reserve(NPart);
 
   loop(dtt,-1);            // First loop, calculates new npart positions and velocities for my time step dt
 
@@ -358,8 +383,11 @@ func(){
       cpar1=i;
       cpar2=j;
       t_c= dtt*(part.x[cpar2]-part.x[cpar1])/(part.x[cpar2]-part.x[cpar1]+npart.x[cpar1]-npart.x[cpar2]);    // Calculating tc1
-      temp=part.x[cpar1]+part.vx[cpar1]*sin(Wp*t_c)-X[cpar1]*(1-cos(Wp*t_c));                        // temporary values for tc2
-      temp1=part.x[cpar2]+part.vx[cpar2]*sin(Wp*t_c)-X[cpar2]*(1-cos(Wp*t_c));  
+      double cosx=cos(Wp*t_c);
+      double sinx=sin(Wp*t_c);
+
+      temp=part.x[cpar1]+part.vx[cpar1]*sinx-X[cpar1]*(1-cosx);                        // temporary values for tc2
+      temp1=part.x[cpar2]+part.vx[cpar2]*sinx-X[cpar2]*(1-cosx);  
       
       if(part.x[cpar2]-part.x[cpar1]+temp-temp1 > 0.00001){                                         // Guarantee code doesn't explode
 
@@ -419,17 +447,17 @@ void energy( double time, double& E_kin,double& E_pot,double& E_tot, double& E_k
   
   etotal=0.0;
   kinetic=0.0;
-   potential = 0.0;
+  potential = 0.0;
   for (int i = 0; i < NPart; ++i)
   {
 		// kinectic energy of the system 
-		v2=part.vx[i]*part.vx[i];
-		kinetic = kinetic + 0.5*v2;
+    v2=part.vx[i]*part.vx[i];
+    kinetic = kinetic + 0.5*v2;
 		// Potential Energy of the system  
-		xij = part.x[i] - pos[i];
-		xij2 = xij*xij;
-		pot = +  ( xij2/2 );
-		potential = potential + pot;
+    xij = part.x[i] - pos[i];
+    xij2 = xij*xij;
+    pot = +  ( xij2/2 );
+    potential = potential + pot;
   }
 
   // Total energy of the system
@@ -442,9 +470,9 @@ void energy( double time, double& E_kin,double& E_pot,double& E_tot, double& E_k
   
   // na primeira iteração grava os valores das energias de modo a comparar a sua conservação 
   if(t==tmin){
-		E_kin_0=kinetic;
-		E_pot_0=potential;
-		E_tot_0=etotal;
-	  }
+    E_kin_0=kinetic;
+    E_pot_0=potential;
+    E_tot_0=etotal;
+  }
 }
 
