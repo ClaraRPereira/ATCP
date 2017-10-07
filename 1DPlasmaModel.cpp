@@ -54,7 +54,7 @@ bool colision = false;    // Checks if a colision was found
 bool print    = true;     // Variable to decide if i want to print stuff
 
 void initial_conditions(int NPart,double L);     // Inicia as partículas com as condições iniciais
-void record_trajectories(int NPart);    // Writes trajectories to a file
+void record_trajectories(int NPart ,double t, double dt);    // Writes trajectories to a file
 
 void write_velocities(int NPart, int i);
 
@@ -128,7 +128,7 @@ int main(){
 
 	//velocity_statistics(t);
 
-    if (t == tmin) {
+    if (t == dt) {
 
       write_velocities(NPart,1);
     } 
@@ -149,7 +149,7 @@ int main(){
       energy(NPart, t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0);
       record_energies(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
       record_energies_normalized(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
-      record_trajectories(NPart);
+      record_trajectories(NPart ,t, dt);
       
     }
   }
@@ -198,13 +198,16 @@ PrintParOrder(int NPart){              // Prints TO THE TERMINAL particle orderi
 }
 
 // Write the positions, velocities and momenta of the particles in the file " DATA ".
-void record_trajectories(int NPart ){
+void record_trajectories(int NPart ,double t, double dt){
 
-  for (int i=0 ; i<NPart ; i++ )
-  {
-	// time ---- position ---- displacement ---- velocity ---- particle id  
-   data << t <<"\t"<< part.x[i] <<"\t"<< X[i] <<"\t"<< part.vx[i] <<"\t"<< part.num[i] <<endl; 
- }	
+		for (int i=0 ; i<NPart ; i++ )
+		{
+			// time ---- position ---- displacement ---- velocity ---- particle id  
+			data << t <<"\t"<< part.x[i] <<"\t"<< X[i] <<"\t"<< part.vx[i] <<"\t"<< part.num[i] <<endl; 
+		}	
+		data <<"\n"<< endl;
+	
+	
 }
 
 // Write the energies of the system in the file " ENERGY ".
@@ -477,7 +480,7 @@ void energy(int NPart, double time, double& E_kin,double& E_pot,double& E_tot, d
   E_tot=etotal;
   
   // na primeira iteração grava os valores das energias de modo a comparar a sua conservação 
-  if(t==tmin){
+  if(t==0.001){
     E_kin_0=kinetic;
     E_pot_0=potential;
     E_tot_0=etotal;
