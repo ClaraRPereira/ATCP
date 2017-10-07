@@ -13,6 +13,8 @@
 #    define M_PI 3.14159265358979323846
 #endif
 
+# define Wp 1.0
+
 using namespace std;
 
 // Variáveis iniciadas no particles.cpp
@@ -50,7 +52,7 @@ double L;  //size of box
 bool colision = false;    // Checks if a colision was found
 bool print    = true;     // Variable to decide if i want to print stuff
 
-void initial_conditions();     // Inicia as partículas com as condições iniciais
+void initial_conditions(int NPart,double L);     // Inicia as partículas com as condições iniciais
 void record_trajectories();    // Writes trajectories to a file
 
 void write_velocities(int i);
@@ -59,13 +61,13 @@ void PrintParStatsAll();      // Print position, velocity, and momentum of every
 void PrintParStats(int i);
 void PrintParOrder();
 
-void loop(double dtime , int k);  // Methods  for the main algorithm
+void time_step_iteration(int NPart,double dtime , int k);  // Methods  for the main algorithm
 
 void energy( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 void record_energies( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 void record_energies_normalized( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 
-double func();
+double Dawson_algorithm(int NPart , double dt);
 
 int main(){
 
@@ -104,8 +106,8 @@ vel1.open ("vel1.dat");
 estatisticas_vel.open("stats.dat");
 landau.open("landaudamping.dat");
 
- // Call function to initialize the particles' variables (position, velocity and momenta)
-   initial_conditions();
+ // Call Dawson_algorithmtion to initialize the particles' variables (position, velocity and momenta)
+   initial_conditions(NPart,L);
 
 
   double op=0;
@@ -117,10 +119,10 @@ landau.open("landaudamping.dat");
 
 
     // Compute positions and velocities at current timestep and determine crossing positions
-    func();
+    Dawson_algorithm(NPart,dt);
 
     if (colision) 
-      break; // PARAR O LOOP SE JÁ ENCONTREI A COLISÃO
+      break; // PARAR O time_step_iteration SE JÁ ENCONTREI A COLISÃO
 
         // Compute energies at current timestep
   
@@ -241,7 +243,7 @@ void write_velocities(int j){
 
 }
 
-void initial_conditions(){// Gonna Define the initial Conditions
+void initial_conditions(int NPart,double L){// Gonna Define the initial Conditions
 
   vector<double> Px; 
 
@@ -250,7 +252,7 @@ void initial_conditions(){// Gonna Define the initial Conditions
   double axis = 0;        // Start of x axis
   double spc  = L/NPart;  // Defining intersheet spacing
   
-  for (int i = 0 ; i< NPart ; i++ ){         // For loop to set the different initial vectors
+  for (int i = 0 ; i< NPart ; i++ ){         // For time_step_iteration to set the different initial vectors
 
     part.num.push_back(i);                   // Defining Particle ordering
     npart.num.push_back(i);
@@ -275,32 +277,32 @@ void initial_conditions(){// Gonna Define the initial Conditions
 }
 
 void 
-loop( double dtime , int a ){
+time_step_iteration(int NPart, double dtime , int a ){
 
-  double Wp = 1;
+  //double Wp = 1;
   double aux;    // auxiliary variable to store old values of stuff
 
   double mean;   // AUXILIARY CHEATING VALUE TO CALCULATE MEAN VALUE BETWEEN PARTICLES POSITIONS WHEN THEY COLLIDE
                  // se a conservação de energia for má. em vez de usarmos o valor médio iteramos um tc3 até as posições de igualarem
   
   
-  for (int i = 0; i < NPart; ++i){   // Loop to compute displacements
+  //for (int i = 0; i < NPart; ++i){   // time_step_iteration to compute displacements
 
-    X[i]=part.x[i]-pos[i];
-  }
+    //X[i]=part.x[i]-pos[i];  // NAO PRECISA D SER NUM FOR EXTRA PODE SER NO PROPRIO CICLO DA ITERACAO 
+  //}
 
   // CALCULATING TIME EVOLUTION OF THE "HARMONIC OSCILLATOR" Equation. Solution to differential equation for each particle
 
   for (int i = 0; i < NPart; ++i){
-
+	  
+	X[i]=part.x[i]-pos[i];
+	
     npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);    // npart are the new values for the particles. part are the old values (previous time step).
     npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtime)-X[i]*(1-cos(Wp*dtime));
     //if (npart.x[i]<=0) npart.vx[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
     if (npart.x[i]>=L || npart.x[i]<=0) npart.vx[i]=-npart.vx[i];        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
   }   
 
-  //double vel_max;
-  //double vel_min;
 
   if(a!=-1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
              // When a!=0, a assumes the value of the position of the colliding particle. 
@@ -320,7 +322,7 @@ loop( double dtime , int a ){
 }    
 
 double 
-func(){
+Dawson_algorithm( int NPart , double dt ){
 
   vector<double> col_pos;  // stores positions of colliding particles
   int cpar1=0;             // position of 1st colliding particle
@@ -330,7 +332,7 @@ func(){
   int j=0;                 // Iterator
   int num_shocks=0; // NUmber of collisions
 
-  double Wp=1;             // Plasma freq.
+  //double Wp=1;             // Plasma freq.
   double dtt=dt;           // Time step
   double t_c=0;            // Variable for the crossing time, tc1 
   double t_c2;             // Variable for the crossing time, tc2 
@@ -342,9 +344,9 @@ func(){
   vector<double> vec_cross;   // Vector stores tc2 values
   double cross_size;          // size of vector vec_cross (just to avoid warnings and always compare integer values)
 
-  loop(dtt,-1);            // First loop, calculates new npart positions and velocities for my time step dt
+  time_step_iteration(NPart,dtt,-1);            // First time_step_iteration, calculates new npart positions and velocities for my time step dt
 
-  LOOP:
+  time_step_iteration:
   col=0;
   vec_cross.clear();
   col_pos.clear();
@@ -394,7 +396,7 @@ func(){
     store_time=store_time+min_tc2;                                 // storing time to know where i am at
 
 
-    loop(min_tc2,col_pos[minp]);                                     // Loop to advance particles positons up to tc2
+    time_step_iteration(NPart , min_tc2,col_pos[minp]);                                     // time_step_iteration to advance particles positons up to tc2
   }
 
   part.x = npart.x;                                                 // storing new advanced values in part.
@@ -402,9 +404,9 @@ func(){
 
   if ( dt - store_time < 0.0000)                          // If i haven't reached t+ dt yet i iterate the remaining time and look for collisions once more
   {
-    loop(dt-store_time,-1);
+    time_step_iteration(NPart,dt-store_time,-1);
     dtt=dt-store_time;
-    goto LOOP;
+    goto time_step_iteration;
   } 
   
   //cout << " TEMPO ACTUAL DA SIMULAÇÂO " << t + store_time << endl;

@@ -1,6 +1,6 @@
 #include "particles.h"
 
-int NPart = 100; 		         // No of particles
+//int NPart = 100; 		         // No of particles
 particles part;                  // Initializing one set of particles at time t
 particles npart;                 // Set new set of particles at time t+dt 
 
@@ -8,7 +8,7 @@ vector<double> particles::dir_product (vector<double> a, vector<double> b){ // D
 
 	vector<double> product(NPart);
 
-	for(int i=0; i< NPart; i++){
+	for(int i=0; i< (int) a.size(); i++){
 
     	product[i] = a[i]*b[i]; // Multiplying component by component
     }
