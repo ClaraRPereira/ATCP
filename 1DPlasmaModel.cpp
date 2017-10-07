@@ -51,20 +51,20 @@ int Inelastic=0;         // If Inelastic==0 --> fazemos colisões elásticas . E
 double L;  //size of box
 
 bool colision = false;    // Checks if a colision was found
-bool print    = false;     // Variable to decide if i want to print stuff
+bool print    = true;     // Variable to decide if i want to print stuff
 
 void initial_conditions(int NPart,double L);     // Inicia as partículas com as condições iniciais
-void record_trajectories();    // Writes trajectories to a file
+void record_trajectories(int NPart);    // Writes trajectories to a file
 
-void write_velocities(int i);
+void write_velocities(int NPart, int i);
 
-void PrintParStatsAll();      // Print position, velocity, and momentum of every particle
-void PrintParStats(int i);
-void PrintParOrder();
+void PrintParStatsAll(int NPart);      // Print position, velocity, and momentum of every particle
+void PrintParStats(int NPart,int i);
+void PrintParOrder(int NPart);
 
 void time_step_iteration(int NPart,double dtime , int k);  // Methods  for the main algorithm
 
-void energy( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
+void energy(int NPart, double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 void record_energies( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 void record_energies_normalized( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 
@@ -76,7 +76,7 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  NPart = 200;   // Number of particles
+  int NPart = 200;   // Number of particles
   L=0.05*NPart;
   Vt = 1;        // Max absolute velocity
   
@@ -103,13 +103,9 @@ int main(){
   estatisticas_vel.open("stats.dat");
   landau.open("landaudamping.dat");
 
-<<<<<<< HEAD
+
  // Call Dawson_algorithmtion to initialize the particles' variables (position, velocity and momenta)
    initial_conditions(NPart,L);
-=======
- // Call function to initialize the particles' variables (position, velocity and momenta)
-  initial_conditions();
->>>>>>> 5cffece61284c83226e7445ce8eb2c261c874c8d
 
 
   double op=0;
@@ -123,11 +119,9 @@ int main(){
     // Compute positions and velocities at current timestep and determine crossing positions
     Dawson_algorithm(NPart,dt);
 
-<<<<<<< HEAD
+
     if (colision) 
       break; // PARAR O time_step_iteration SE JÁ ENCONTREI A COLISÃO
-=======
->>>>>>> 5cffece61284c83226e7445ce8eb2c261c874c8d
 
     // Go to the next timestep
     t = t + dt;
@@ -136,26 +130,26 @@ int main(){
 
     if (t == tmin) {
 
-      write_velocities(1);
+      write_velocities(NPart,1);
     } 
     if(op>=1) {
 
-      write_velocities(3);
+      write_velocities(NPart,3);
       op=0;
     }
     
     //PrintParStatsAll();
 
-    if (t >= tmax) write_velocities(2);
+    if (t >= tmax) write_velocities(NPart,2);
     
     
     // Write the positions of the particles in the file "DATA" if print=true.
     if (print){
 
-      energy(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0);
+      energy(NPart, t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0);
       record_energies(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
       record_energies_normalized(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
-      record_trajectories( );
+      record_trajectories(NPart);
       
     }
   }
@@ -172,27 +166,27 @@ int main(){
 }
 
 void
-PrintParStatsAll(){            // Prints TO THE TERIMNAL position, velocity and momentum for all particles
+PrintParStatsAll(int NPart){            // Prints TO THE TERIMNAL position, velocity and momentum for all particles
 
   // Print, to the terminal, positions, velocities & momenta.
   cout << " Nº Partículas:  " << NPart << " \n " << endl;
 
   for (int i = 0; i < NPart; ++i){
 
-    PrintParStats(i);
+    PrintParStats(NPart,i);
   }
 
 }
 
 void
-PrintParStats(int i){          // Prints TO THE TERIMNAL position, velocity and momentum for particle i
+PrintParStats(int NPart,int i){          // Prints TO THE TERIMNAL position, velocity and momentum for particle i
 
   cout << " Partícula " << i << " \t Position : " << part.x[i] << " |  Velocity :  " ;
   cout << part.vx[i] << "   |  Momentum : " << part.mx[i] << " |" << endl;  
 }
 
 void 
-PrintParOrder(){              // Prints TO THE TERMINAL particle ordering
+PrintParOrder(int NPart){              // Prints TO THE TERMINAL particle ordering
 
   cout << " >>> Ordenação das Partículas : " ;
   for (int i = 0; i < NPart; ++i){
@@ -204,7 +198,7 @@ PrintParOrder(){              // Prints TO THE TERMINAL particle ordering
 }
 
 // Write the positions, velocities and momenta of the particles in the file " DATA ".
-void record_trajectories( ){
+void record_trajectories(int NPart ){
 
   for (int i=0 ; i<NPart ; i++ )
   {
@@ -229,7 +223,7 @@ void record_energies_normalized( double time, double& E_kin,double& E_pot,double
 
 
 
-void write_velocities(int j){
+void write_velocities(int NPart,int j){
 
   for (int i=0 ; i<NPart ; i++ ){
 
@@ -303,27 +297,16 @@ time_step_iteration(int NPart, double dtime , int a ){
   double sinx=sin(Wp*dtime);
   // CALCULATING TIME EVOLUTION OF THE "HARMONIC OSCILLATOR" Equation. Solution to differential equation for each particle
   for (int i = 0; i < NPart; ++i){
-<<<<<<< HEAD
+
 	  
 	X[i]=part.x[i]-pos[i];
 	
-    npart.vx[i]=part.vx[i]*cos(Wp*dtime)-Wp*X[i]*sin(Wp*dtime);    // npart are the new values for the particles. part are the old values (previous time step).
-    npart.x[i]=part.x[i]+part.vx[i]*sin(Wp*dtime)-X[i]*(1-cos(Wp*dtime));
-=======
-
     npart.vx[i]=part.vx[i]*cosx-Wp*X[i]*sinx;    // npart are the new values for the particles. part are the old values (previous time step).
     npart.x[i]=part.x[i]+part.vx[i]*sinx-X[i]*(1-cosx);
->>>>>>> 5cffece61284c83226e7445ce8eb2c261c874c8d
     //if (npart.x[i]<=0) npart.vx[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
     //if (npart.x[i]>=L || npart.x[i]<=0) npart.vx[i]=-npart.vx[i];        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
   }   
-
-<<<<<<< HEAD
-
   if(a!=-1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
-=======
-  if(a!=-1 && Inelastic==0){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
->>>>>>> 5cffece61284c83226e7445ce8eb2c261c874c8d
              // When a!=0, a assumes the value of the position of the colliding particle. 
 
     aux=npart.vx[a];
@@ -465,7 +448,7 @@ Dawson_algorithm( int NPart , double dt ){
   return min_tc2;
 }
 
-void energy( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0){
+void energy(int NPart, double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0){
 
   double v2, kinetic, potential, pot, etotal;
   double xij, xij2;

@@ -6,7 +6,7 @@ particles npart;                 // Set new set of particles at time t+dt
 
 vector<double> particles::dir_product (vector<double> a, vector<double> b){ // Defining direct product
 
-	vector<double> product(NPart);
+	vector<double> product((int) a.size());
 
 	for(int i=0; i< (int) a.size(); i++){
 
