@@ -39,7 +39,9 @@ ofstream fin_vel;
 ofstream ini_vel;
 ofstream vel1;
 ofstream estatisticas_vel;
-ofstream landau;
+ofstream ergodic;
+ofstream liouville;
+
 
 double Vt;                       // Max velocity for uniform distribution   
 
@@ -67,8 +69,12 @@ void time_step_iteration(int NPart,double dtime , int k);  // Methods  for the m
 void energy(int NPart, double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 void record_energies( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
 void record_energies_normalized( double time, double& E_kin,double& E_pot,double& E_tot, double& E_kin_0,double& E_pot_0,double& E_tot_0);
+void ergodic_test(int NPart, double t, double&  average);
+void velocity_statistics(int NPart,double time);
+double Area(double xA ,double yA ,double xB ,double yB ,double xC ,double yC);
 
 double Dawson_algorithm(int NPart , double dt);
+
 
 int main(){
 
@@ -76,7 +82,7 @@ int main(){
 
   cout << "\n \t  ****** 1D PLASMA MODEL ****** \n" << endl;
 
-  int NPart = 200;   // Number of particles
+  int NPart = 400;   // Number of particles
   L=0.05*NPart;
   Vt = 1;        // Max absolute velocity
   
@@ -86,7 +92,7 @@ int main(){
   dt = 0.001;    // Time step
   t = tmin;     // Initial time
 
-
+double average_V2=0.0 ;
 //variáveis para imprimir as energias
   double E_kin , E_pot , E_tot;
   double E_kin_0 , E_pot_0 , E_tot_0;			        
@@ -101,8 +107,8 @@ int main(){
   ini_vel.open ("initial_velocity.dat");
   vel1.open ("vel1.dat");
   estatisticas_vel.open("stats.dat");
-  landau.open("landaudamping.dat");
-
+ergodic.open("ergodic.dat");
+liouville.open("liouville.dat");
 
  // Call Dawson_algorithmtion to initialize the particles' variables (position, velocity and momenta)
    initial_conditions(NPart,L);
@@ -126,8 +132,7 @@ int main(){
     // Go to the next timestep
     t = t + dt;
 
-	//velocity_statistics(t);
-
+	
     if (t == dt) {
 
       write_velocities(NPart,1);
@@ -150,18 +155,26 @@ int main(){
       record_energies(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
       record_energies_normalized(t,E_kin,E_pot,E_tot,E_kin_0,E_pot_0,E_tot_0 );
       record_trajectories(NPart ,t, dt);
-      
+      ergodic_test(NPart,t, average_V2);
+      velocity_statistics(NPart,t);
+
     }
+  
+
+ 
+    
   }
 
-
+	
   data.close();
   energies.close();
   energies_normalized.close();
   fin_vel.close();
   ini_vel.close();
   vel1.close();
-
+  ergodic.close();
+  estatisticas_vel.close();
+	liouville.close();
   return 0;
 }
 
@@ -286,13 +299,9 @@ time_step_iteration(int NPart, double dtime , int a ){
   double vel_max;   // Store relative values of velocities in case we are considering inelastic collisions
   double vel_min;
   double mean;   // AUXILIARY CHEATING VALUE TO CALCULATE MEAN VALUE BETWEEN PARTICLES POSITIONS WHEN THEY COLLIDE
-                 // se a conservação de energia for má. em vez de usarmos o valor médio iteramos um tc3 até as posições de igualarem
+                 
   
   
-  //for (int i = 0; i < NPart; ++i){   // time_step_iteration to compute displacements
-
-    //X[i]=part.x[i]-pos[i];  // NAO PRECISA D SER NUM FOR EXTRA PODE SER NO PROPRIO CICLO DA ITERACAO 
-  //}
 
   // CALCULATING TIME EVOLUTION OF THE "HARMONIC OSCILLATOR" Equation. Solution to differential equation for each particle
 
@@ -303,11 +312,32 @@ time_step_iteration(int NPart, double dtime , int a ){
 
 	  
 	X[i]=part.x[i]-pos[i];
-	
+
     npart.vx[i]=part.vx[i]*cosx-Wp*X[i]*sinx;    // npart are the new values for the particles. part are the old values (previous time step).
     npart.x[i]=part.x[i]+part.vx[i]*sinx-X[i]*(1-cosx);
+    
+    
+    // condicoes fronteita periodicas NAO TA A FUNCIONAR 
+    /*
+    if (npart.x[i]>=L)
+		{
+		for(int k=0;k<NPart;++k)
+		npart.x[(k+1 )% NPart] = npart.x[k];
+		npart.vx[(k+1 )% NPart] = npart.vx[k];
+		pos[(k+1 )% NPart] = pos[k];
+		}
+    
+    if (npart.x[i]>=L)
+		{
+		npart.x[i] -= L;
+		X[i]-= L	 ;
+		}
+    */
+   
     //if (npart.x[i]<=0) npart.vx[i]=0;        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
     //if (npart.x[i]>=L || npart.x[i]<=0) npart.vx[i]=-npart.vx[i];        // só está aqui porque ainda não fizemos as condiçoes de fronteira periódicas. 
+    
+    
   }   
   if(a!=-1){ // if a=-1 means the new npart values will still be tested for collisions and are not meant to be stored yet.
              // When a!=0, a assumes the value of the position of the colliding particle. 
@@ -487,3 +517,61 @@ void energy(int NPart, double time, double& E_kin,double& E_pot,double& E_tot, d
   }
 }
 
+   
+    
+  void  ergodic_test(int NPart,double time, double& average) // pretende comparar a media temporal com a media nas particulas
+ {
+	
+	double mean = 0.0 , area = 0.0 ;
+	// avança a media temporal do quadrado da velocidade da particula central 
+	average += part.vx[NPart/2]*part.vx[NPart/2]; 
+	// calcula para esse mesmo tempo a média nas particulas da mesma quantidade
+	for(int i = 0 ; i < NPart ; ++i)
+	{
+		mean += part.vx[i]*part.vx[i]/NPart;
+	}
+	//escreve os dados 
+	
+	area = Area(part.x[NPart/2],part.vx[NPart/2],part.x[8+NPart/2],part.vx[8+NPart/2],part.x[NPart/2-8],part.vx[NPart/2-8]);
+	
+	liouville << time <<"\t"<< area <<endl; 
+	ergodic << time <<"\t"<<dt*average/time<<"\t"<<mean<<endl;
+	
+}
+
+
+
+double Area(double xA ,double yA ,double xB ,double yB ,double xC ,double yC){
+	double Area=0.0;
+	Area = 0.5*abs(xA*yB-xA*yC+xB*yC-xB*yA + xC*yA - xC*yB);
+	return Area;
+	}
+
+
+void velocity_statistics(int NPart,double time){
+
+	double moment1=0.0, moment2=0.0, moment3=0.0, moment4=0.0; 	
+	double mean , desvpad , skew , kurt;	
+	//calculos dos momentos de probabilidade para todas as particulas
+	for (int i = 0; i< NPart; i++)
+	{ 
+		moment1 += part.vx[i];
+		moment2 += pow(part.vx[i],2);
+		moment3 += pow(part.vx[i],3);
+		moment4 += pow(part.vx[i],4);
+	}
+	moment1 = moment1/NPart; 
+	moment2 = moment2/NPart; 
+	moment3 = moment3/NPart; 
+	moment4 = moment4/NPart; 
+	//normalização dos momentos
+	mean = moment1;
+	desvpad = sqrt(moment2 - moment1*moment1); 
+	skew = moment3/pow(desvpad,3);
+	kurt = moment4/pow(desvpad,4)-3;
+	
+	estatisticas_vel << time << "\t" << mean <<"\t" << desvpad <<"\t" << skew <<"\t" << kurt << endl;
+	
+}
+
+    
