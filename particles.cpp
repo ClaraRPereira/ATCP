@@ -23,3 +23,6 @@ void particles::set_values (vector<double> position, vector<double> velocity, ve
 	vx = velocity;
 	mx = part.dir_product(mass,velocity);
 }
+
+
+

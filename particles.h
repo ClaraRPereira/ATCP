@@ -21,4 +21,5 @@ public:
     vector<double> num; // need the numbering of the particles in case there are crossings
 };
 
+
 #endif
